@@ -1,26 +1,26 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
     // Symbole für die Slot Machine mit Gewichtungen
     const symbols = [
-        { name: '7', class: 'symbol-7', display: '7', weight: 1 },            // Am seltensten
-        { name: 'bell', class: 'symbol-bell', display: '🔔', weight: 3 },     // Sehr selten
-        { name: 'cherry', class: 'symbol-cherry', display: '🍒', weight: 5 }, // Selten
-        { name: 'lemon', class: 'symbol-lemon', display: '🍋', weight: 8 },   // Etwas selten
-        { name: 'orange', class: 'symbol-orange', display: '🍊', weight: 12 }, // Mittel
-        { name: 'plum', class: 'symbol-plum', display: '🍇', weight: 18 },     // Häufig
-        { name: 'watermelon', class: 'symbol-watermelon', display: '🍉', weight: 25 } // Am häufigsten
+        {name: '7', class: 'symbol-7', display: '7', weight: 1},            // Am seltensten
+        {name: 'bell', class: 'symbol-bell', display: '🔔', weight: 3},     // Sehr selten
+        {name: 'cherry', class: 'symbol-cherry', display: '🍒', weight: 5}, // Selten
+        {name: 'lemon', class: 'symbol-lemon', display: '🍋', weight: 8},   // Etwas selten
+        {name: 'orange', class: 'symbol-orange', display: '🍊', weight: 12}, // Mittel
+        {name: 'plum', class: 'symbol-plum', display: '🍇', weight: 18},     // Häufig
+        {name: 'watermelon', class: 'symbol-watermelon', display: '🍉', weight: 25} // Am häufigsten
     ];
 
     // Gewinnkombinationen und Auszahlungen
     const winningCombinations = [
-        { symbols: ['7', '7', '7'], multiplier: 50 },        // Jackpot
-        { symbols: ['bell', 'bell', 'bell'], multiplier: 15 },
-        { symbols: ['cherry', 'cherry', 'cherry'], multiplier: 10 },
-        { symbols: ['lemon', 'lemon', 'lemon'], multiplier: 8 },
-        { symbols: ['orange', 'orange', 'orange'], multiplier: 6 },
-        { symbols: ['plum', 'plum', 'plum'], multiplier: 4 },
-        { symbols: ['watermelon', 'watermelon', 'watermelon'], multiplier: 3 },
+        {symbols: ['7', '7', '7'], multiplier: 50},        // Jackpot
+        {symbols: ['bell', 'bell', 'bell'], multiplier: 15},
+        {symbols: ['cherry', 'cherry', 'cherry'], multiplier: 10},
+        {symbols: ['lemon', 'lemon', 'lemon'], multiplier: 8},
+        {symbols: ['orange', 'orange', 'orange'], multiplier: 6},
+        {symbols: ['plum', 'plum', 'plum'], multiplier: 4},
+        {symbols: ['watermelon', 'watermelon', 'watermelon'], multiplier: 3},
         // Gemischte Fruchtkombo
-        { symbols: ['orange', 'lemon', 'watermelon'], multiplier: 2 }
+        {symbols: ['orange', 'lemon', 'watermelon'], multiplier: 2}
     ];
 
     // DOM-Elemente
@@ -279,45 +279,242 @@
 
     // Gewinnkombinationen prüfen
     function checkWinningCombinations() {
-        // In diesem Beispiel prüfen wir nur die mittlere Reihe (Index 1 bei visibleRows=3)
-        const middleRowSymbols = currentReelSymbols.map(reelSymbols => reelSymbols[1].name);
+        // Alle Walzensymbole erfassen (für alle sichtbaren Reihen)
+        const allRowsSymbols = [];
 
-        // Prüfe die ersten drei Symbole für Gewinnkombinationen
-        const firstThreeSymbols = middleRowSymbols.slice(0, 3);
+        // Für jede sichtbare Reihe
+        for (let row = 0; row < visibleRows; row++) {
+            // Symbole dieser Reihe aus allen Walzen sammeln
+            const rowSymbols = currentReelSymbols.map(reelSymbols => reelSymbols[row]);
+            allRowsSymbols.push(rowSymbols);
+        }
 
-        // Suche nach Gewinnkombinationen
-        let win = false;
-        let winAmount = 0;
+        // Liste aller Gewinnkombinationen für sequentielle Animation
+        const winningSequences = [];
+        let totalWinAmount = 0;
 
-        for (const combo of winningCombinations) {
-            // Prüfen, ob die Kombination übereinstimmt 
-            // (Reihenfolge spielt für einfache Gewinne keine Rolle)
-            if (containsAll(firstThreeSymbols, combo.symbols) ||
-                (combo.symbols.length === 3 &&
-                    firstThreeSymbols[0] === combo.symbols[0] &&
-                    firstThreeSymbols[1] === combo.symbols[1] &&
-                    firstThreeSymbols[2] === combo.symbols[2])) {
-                win = true;
-                winAmount = spinCost * combo.multiplier;
-                break;
+        // Jede Reihe auf Gewinnkombinationen prüfen
+        for (let rowIndex = 0; rowIndex < allRowsSymbols.length; rowIndex++) {
+            const rowSymbols = allRowsSymbols[rowIndex];
+
+            // Identische Symbole in Folge finden
+            let currentSymbol = null;
+            let sequenceLength = 0;
+            let sequenceStartIndex = 0;
+
+            // Durch die Symbole in der Reihe iterieren
+            for (let i = 0; i <= rowSymbols.length; i++) {
+                // Am Ende oder wenn ein neues Symbol beginnt
+                if (i === rowSymbols.length || (rowSymbols[i].name !== currentSymbol && currentSymbol !== null)) {
+                    // Wenn wir eine Sequenz von mindestens 3 identischen Symbolen haben
+                    if (sequenceLength >= 3) {
+                        // Multiplikator basierend auf Anzahl der Symbole festlegen
+                        const countMultiplier = sequenceLength - 2; // 3 Symbole = 1x, 4 Symbole = 2x, 5 Symbole = 3x
+
+                        // Basiswert des Symbols bestimmen
+                        const symbolValue = getSymbolValue(currentSymbol);
+
+                        // Gewinn berechnen
+                        const winAmount = spinCost * symbolValue * countMultiplier;
+                        totalWinAmount += winAmount;
+
+                        // Gewinnsequenz für Animation speichern
+                        winningSequences.push({
+                            row: rowIndex,
+                            startIndex: sequenceStartIndex,
+                            length: sequenceLength,
+                            symbol: currentSymbol,
+                            winAmount: winAmount
+                        });
+                    }
+
+                    // Neue Sequenz starten
+                    currentSymbol = i < rowSymbols.length ? rowSymbols[i].name : null;
+                    sequenceLength = 1;
+                    sequenceStartIndex = i;
+                } else if (rowSymbols[i].name === currentSymbol) {
+                    // Sequenz verlängern
+                    sequenceLength++;
+                } else {
+                    // Neue Sequenz starten
+                    currentSymbol = rowSymbols[i].name;
+                    sequenceLength = 1;
+                    sequenceStartIndex = i;
+                }
             }
         }
 
-        // Falls gewonnen, Belohnung vergeben
-        if (win) {
-            coins += winAmount;
-            updateCoinDisplay(true); // Nach Gewinn Status mit möglichem Error aktualisieren
-            showMessage(`Glückwunsch! Du hast ${winAmount} Coins gewonnen!`);
+        // Wenn es Gewinnkombinationen gibt
+        if (winningSequences.length > 0) {
+            // Coins hinzufügen
+            coins += totalWinAmount;
+            updateCoinDisplay(true);
+
+            // Sequentiell alle Gewinnkombinationen animieren
+            animateWinningSequences(winningSequences, 0, totalWinAmount);
+        } else {
+            // Sofort nach dem Spin den Button wieder aktivieren, wenn es keine Gewinne gibt
+            spinButton.classList.remove('disabled');
+            spinButton.disabled = false;
         }
     }
 
-    // Hilfsfunktion: Prüft, ob alle Elemente von subset in set enthalten sind
-    function containsAll(set, subset) {
-        return subset.every(val => {
-            return set.filter(item => item === val).length >=
-                subset.filter(item => item === val).length;
-        });
+    // Symbol-Werte festlegen (von niedrigsten zu höchsten)
+    function getSymbolValue(symbolName) {
+        switch (symbolName) {
+            case 'watermelon':
+                return 2;  // Am niedrigsten
+            case 'plum':
+                return 3;
+            case 'orange':
+                return 4;
+            case 'lemon':
+                return 5;
+            case 'cherry':
+                return 6;
+            case 'bell':
+                return 8;
+            case '7':
+                return 10;          // Am höchsten
+            default:
+                return 1;
+        }
     }
+
+    // Gewinnkombinationen nacheinander animieren
+    function animateWinningSequences(sequences, currentIndex, totalWinAmount) {
+        // Alle Animationen abgeschlossen
+        if (currentIndex >= sequences.length) {
+            // Nachricht mit Gesamtgewinn anzeigen (ohne alert)
+            showWinMessage(`Glückwunsch! Du hast ${totalWinAmount} Coins gewonnen!`);
+
+            // Button wieder aktivieren nach kurzer Verzögerung
+            setTimeout(() => {
+                spinButton.classList.remove('disabled');
+                spinButton.disabled = false;
+            }, 2000); // 2 Sekunden warten, bis die letzte Meldung ausgeblendet ist
+            return;
+        }
+
+        const sequence = sequences[currentIndex];
+
+        // Symbole in dieser Gewinnreihe markieren
+        highlightWinningSymbols(sequence.row, sequence.startIndex, sequence.length);
+
+        // Nach einer Verzögerung die Markierung entfernen und zur nächsten Kombination gehen
+        setTimeout(() => {
+            removeHighlights();
+            animateWinningSequences(sequences, currentIndex + 1, totalWinAmount);
+        }, 1500); // 1,5 Sekunden pro Kombination anzeigen
+    }
+
+    // Gewinnkombination hervorheben
+    function highlightWinningSymbols(row, startIndex, length) {
+        for (let i = startIndex; i < startIndex + length; i++) {
+            if (i < reels.length) { // Sicherstellen, dass der Index im gültigen Bereich liegt
+                const reel = reels[i];
+                const symbolElement = reel.querySelector('.symbols-container').children[row];
+
+                // Highlight-Element erstellen
+                const highlight = document.createElement('div');
+                highlight.className = 'symbol-highlight';
+
+                // Highlight dem Symbol hinzufügen
+                symbolElement.style.position = 'relative';
+                symbolElement.appendChild(highlight);
+            }
+        }
+    }
+
+    // Alle Hervorhebungen entfernen
+    function removeHighlights() {
+        document.querySelectorAll('.symbol-highlight').forEach(el => el.remove());
+    }
+
+    // Win-Nachricht anzeigen ohne den Spielfluss zu unterbrechen
+    function showWinMessage(message) {
+        // Prüfen ob bereits ein Win-Message-Element existiert
+        let winMessageElement = document.getElementById('win-message');
+
+        // Falls nicht, erstellen wir ein neues
+        if (!winMessageElement) {
+            winMessageElement = document.createElement('div');
+            winMessageElement.id = 'win-message';
+            winMessageElement.className = 'win-message';
+            document.querySelector('.container').prepend(winMessageElement);
+        }
+
+        // Nachricht setzen
+        winMessageElement.textContent = message;
+
+        // Animation für das Einblenden
+        winMessageElement.classList.remove('show');
+        void winMessageElement.offsetHeight; // Force reflow
+        winMessageElement.classList.add('show');
+
+        // Nach 3 Sekunden ausblenden
+        setTimeout(() => {
+            winMessageElement.classList.remove('show');
+        }, 3000);
+    }
+
+    // Sicherstellen, dass die benötigten CSS-Stile vorhanden sind
+    function addRequiredStyles() {
+        if (!document.getElementById('slot-machine-styles')) {
+            const styleElement = document.createElement('style');
+            styleElement.id = 'slot-machine-styles';
+            styleElement.textContent = `
+            /* Animation für die Gewinnmeldung */
+            .win-message {
+                position: fixed;
+                top: -100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: gold;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: bold;
+                text-align: center;
+                z-index: 100;
+                min-width: 300px;
+                transition: top 0.5s ease-out;
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+            }
+            
+            .win-message.show {
+                top: 20px;
+            }
+            
+            /* Symbol-Highlight Animationen */
+            .symbol-highlight {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: 4px solid gold;
+                border-radius: 8px;
+                box-shadow: 0 0 10px gold;
+                animation: pulse 0.5s infinite alternate;
+                pointer-events: none;
+                z-index: 10;
+            }
+            
+            @keyframes pulse {
+                0% { opacity: 0.4; transform: scale(0.95); }
+                100% { opacity: 1; transform: scale(1.05); }
+            }
+        `;
+            document.head.appendChild(styleElement);
+        }
+    }
+
+    // Beim Laden der Seite die Stile hinzufügen
+    document.addEventListener('DOMContentLoaded', function () {
+        addRequiredStyles();
+        // Rest der ursprünglichen Initialisierung...
+    });
 
     // Event-Listener hinzufügen
     spinButton.addEventListener('click', spin);
