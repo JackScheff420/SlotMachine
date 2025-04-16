@@ -9,18 +9,32 @@
 <body>
 <div class="container">
     <h1>Slot Machine</h1>
-    <div class="slot-machine">
-        <div class="slot-window">
-            <div class="reels-container">
-                <!-- 5 Spalten für die Slot Machine -->
-                <div class="reel" id="reel1"></div>
-                <div class="reel" id="reel2"></div>
-                <div class="reel" id="reel3"></div>
-                <div class="reel" id="reel4"></div>
-                <div class="reel" id="reel5"></div>
+    <div class="game-container">
+        <!-- Neuer Coin-Bereich -->
+        <div class="coin-box">
+            <h2>Coins</h2>
+            <div class="coin-display">
+                <div class="coin-count" id="coin-count">100</div>
+            </div>
+            <button id="add-coins-button">+ 50 Coins</button>
+        </div>
+
+        <!-- Bestehende Slot Machine -->
+        <div class="slot-machine">
+            <div class="slot-window">
+                <div class="reels-container">
+                    <div class="reel" id="reel1"></div>
+                    <div class="reel" id="reel2"></div>
+                    <div class="reel" id="reel3"></div>
+                    <div class="reel" id="reel4"></div>
+                    <div class="reel" id="reel5"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="spin-cost">1 Coin pro Spin</div>
+                <button id="spin-button">SPIN</button>
             </div>
         </div>
-        <button id="spin-button">SPIN</button>
     </div>
 </div>
 <script src="script.js"></script>

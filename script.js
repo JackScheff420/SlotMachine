@@ -10,6 +10,19 @@
         { name: 'watermelon', class: 'symbol-watermelon', display: '🍉', weight: 25 } // Am häufigsten
     ];
 
+    // Gewinnkombinationen und Auszahlungen
+    const winningCombinations = [
+        { symbols: ['7', '7', '7'], multiplier: 50 },        // Jackpot
+        { symbols: ['bell', 'bell', 'bell'], multiplier: 15 },
+        { symbols: ['cherry', 'cherry', 'cherry'], multiplier: 10 },
+        { symbols: ['lemon', 'lemon', 'lemon'], multiplier: 8 },
+        { symbols: ['orange', 'orange', 'orange'], multiplier: 6 },
+        { symbols: ['plum', 'plum', 'plum'], multiplier: 4 },
+        { symbols: ['watermelon', 'watermelon', 'watermelon'], multiplier: 3 },
+        // Gemischte Fruchtkombo
+        { symbols: ['orange', 'lemon', 'watermelon'], multiplier: 2 }
+    ];
+
     // DOM-Elemente
     const reels = [
         document.getElementById('reel1'),
@@ -19,11 +32,18 @@
         document.getElementById('reel5')
     ];
     const spinButton = document.getElementById('spin-button');
+    const coinCountElement = document.getElementById('coin-count');
+    const addCoinsButton = document.getElementById('add-coins-button');
 
     // Konstanten für die Animation
     const symbolHeight = 100; // Höhe eines Symbols in Pixel
     const visibleRows = 3; // Anzahl der sichtbaren Reihen
     const spinSymbols = 20; // Anzahl der Symbole für die Drehung
+    const spinCost = 1; // Kosten für einen Spin in Coins
+
+    // Coins initialisieren
+    let coins = 100;
+    updateCoinDisplay();
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
@@ -175,6 +195,16 @@
     async function spin() {
         if (spinButton.disabled) return;
 
+        // Prüfen, ob genügend Coins vorhanden sind
+        if (coins < spinCost) {
+            showMessage("Nicht genug Coins! Bitte füge mehr Coins hinzu.");
+            return;
+        }
+
+        // Coins abziehen
+        coins -= spinCost;
+        updateCoinDisplay();
+
         // Button deaktivieren während des Spins
         spinButton.classList.add('disabled');
         spinButton.disabled = true;
@@ -193,25 +223,81 @@
         spinButton.classList.remove('disabled');
         spinButton.disabled = false;
 
-        // Optional: Prüfen auf Gewinnkombinationen
+        // Gewinnkombinationen prüfen
         checkWinningCombinations();
     }
 
-    // Optional: Gewinnkombinationen prüfen
-    function checkWinningCombinations() {
-        // Hier könntest du die Logik implementieren, um zu prüfen,
-        // ob der Spieler gewonnen hat
-        // Für dieses Beispiel: Einfach ein zufälliges Ergebnis zurückgeben
-        const hasWon = Math.random() > 0.7;
-        if (hasWon) {
-            setTimeout(() => {
-                alert('Glückwunsch! Du hast gewonnen!');
-            }, 500);
+    // Nachricht anzeigen
+    function showMessage(message) {
+        alert(message);
+    }
+
+    // Coin-Anzeige aktualisieren
+    function updateCoinDisplay() {
+        coinCountElement.textContent = coins;
+
+        // Spin-Button deaktivieren, wenn nicht genug Coins
+        if (coins < spinCost) {
+            spinButton.classList.add('disabled');
+            spinButton.disabled = true;
+        } else {
+            spinButton.classList.remove('disabled');
+            spinButton.disabled = false;
         }
+    }
+
+    // Coins hinzufügen (für Test-Zwecke)
+    function addCoins() {
+        coins += 50;
+        updateCoinDisplay();
+        showMessage("50 Coins hinzugefügt!");
+    }
+
+    // Gewinnkombinationen prüfen
+    function checkWinningCombinations() {
+        // In diesem Beispiel prüfen wir nur die mittlere Reihe (Index 1 bei visibleRows=3)
+        const middleRowSymbols = currentReelSymbols.map(reelSymbols => reelSymbols[1].name);
+
+        // Prüfe die ersten drei Symbole für Gewinnkombinationen
+        const firstThreeSymbols = middleRowSymbols.slice(0, 3);
+
+        // Suche nach Gewinnkombinationen
+        let win = false;
+        let winAmount = 0;
+
+        for (const combo of winningCombinations) {
+            // Prüfen, ob die Kombination übereinstimmt 
+            // (Reihenfolge spielt für einfache Gewinne keine Rolle)
+            if (containsAll(firstThreeSymbols, combo.symbols) ||
+                (combo.symbols.length === 3 &&
+                    firstThreeSymbols[0] === combo.symbols[0] &&
+                    firstThreeSymbols[1] === combo.symbols[1] &&
+                    firstThreeSymbols[2] === combo.symbols[2])) {
+                win = true;
+                winAmount = spinCost * combo.multiplier;
+                break;
+            }
+        }
+
+        // Falls gewonnen, Belohnung vergeben
+        if (win) {
+            coins += winAmount;
+            updateCoinDisplay();
+            showMessage(`Glückwunsch! Du hast ${winAmount} Coins gewonnen!`);
+        }
+    }
+
+    // Hilfsfunktion: Prüft, ob alle Elemente von subset in set enthalten sind
+    function containsAll(set, subset) {
+        return subset.every(val => {
+            return set.filter(item => item === val).length >=
+                subset.filter(item => item === val).length;
+        });
     }
 
     // Event-Listener hinzufügen
     spinButton.addEventListener('click', spin);
+    addCoinsButton.addEventListener('click', addCoins);
 
     // Initialisierung
     initializeReels();
