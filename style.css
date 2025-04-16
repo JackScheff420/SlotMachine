@@ -92,6 +92,25 @@ body {
     box-shadow: none;
 }
 
+@keyframes errorBlink {
+    0% { color: white}
+    50% { color: #ff0000}
+    100% { color: white}
+}
+
+#spin-button.error {
+    animation: errorBlink 0.5s infinite;
+    background-color: #e74c3c;
+    box-shadow: 0 5px 0 #c0392b;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.spin-cost.error {
+    animation: errorBlink 0.5s infinite;
+    font-weight: bold;
+}
+
 .controls {
     display: flex;
     flex-direction: column;

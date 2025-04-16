@@ -42,8 +42,8 @@
     const spinCost = 1; // Kosten für einen Spin in Coins
 
     // Coins initialisieren
-    let coins = 100;
-    updateCoinDisplay();
+    let coins = 1;
+    updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
@@ -203,11 +203,14 @@
 
         // Coins abziehen
         coins -= spinCost;
-        updateCoinDisplay();
+        // Hier keine Error-Anzeige während des Spins
+        updateCoinDisplay(false);
 
         // Button deaktivieren während des Spins
         spinButton.classList.add('disabled');
         spinButton.disabled = true;
+        // Immer normalen Text während des Spins anzeigen
+        spinButton.textContent = "SPIN";
 
         // Nacheinander alle Walzen drehen
         const promises = reels.map((reel, index) => {
@@ -219,9 +222,8 @@
         // Warten bis alle Walzen angehalten haben
         await Promise.all(promises);
 
-        // Button wieder aktivieren
-        spinButton.classList.remove('disabled');
-        spinButton.disabled = false;
+        // NACH dem Spin den Button-Status aktualisieren, mit Error-Anzeige wenn nötig
+        updateCoinDisplay(true);
 
         // Gewinnkombinationen prüfen
         checkWinningCombinations();
@@ -233,24 +235,46 @@
     }
 
     // Coin-Anzeige aktualisieren
-    function updateCoinDisplay() {
+    // showError bestimmt, ob der Error-Status angezeigt werden soll
+    function updateCoinDisplay(showError) {
         coinCountElement.textContent = coins;
 
-        // Spin-Button deaktivieren, wenn nicht genug Coins
+        // Spin-Button-Status basierend auf Coin-Anzahl anpassen
         if (coins < spinCost) {
-            spinButton.classList.add('disabled');
-            spinButton.disabled = true;
+            if (showError) {
+                // Error-Zustand anzeigen
+                spinButton.classList.add('error');
+                spinButton.classList.remove('disabled');
+                spinButton.textContent = "#ERROR#";
+                spinButton.disabled = true;
+
+                // Spin-Kosten-Text ebenfalls blinken lassen
+                document.querySelector('.spin-cost').classList.add('error');
+            } else {
+                // Deaktivieren ohne Error-Anzeige
+                spinButton.classList.remove('error');
+                spinButton.classList.add('disabled');
+                spinButton.textContent = "SPIN";
+                spinButton.disabled = true;
+
+                // Auch kein Blinken für den Spin-Kosten-Text
+                document.querySelector('.spin-cost').classList.remove('error');
+            }
         } else {
-            spinButton.classList.remove('disabled');
+            // Normalen Zustand wiederherstellen
+            spinButton.classList.remove('error', 'disabled');
+            spinButton.textContent = "SPIN";
             spinButton.disabled = false;
+
+            // Spin-Kosten-Text-Animation entfernen
+            document.querySelector('.spin-cost').classList.remove('error');
         }
     }
 
     // Coins hinzufügen (für Test-Zwecke)
     function addCoins() {
-        coins += 50;
-        updateCoinDisplay();
-        showMessage("50 Coins hinzugefügt!");
+        coins += 5;
+        updateCoinDisplay(false); // Bei Coins-Erhöhung keinen Error anzeigen
     }
 
     // Gewinnkombinationen prüfen
@@ -282,7 +306,7 @@
         // Falls gewonnen, Belohnung vergeben
         if (win) {
             coins += winAmount;
-            updateCoinDisplay();
+            updateCoinDisplay(true); // Nach Gewinn Status mit möglichem Error aktualisieren
             showMessage(`Glückwunsch! Du hast ${winAmount} Coins gewonnen!`);
         }
     }
