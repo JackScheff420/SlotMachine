@@ -20,50 +20,132 @@
     ];
     const spinButton = document.getElementById('spin-button');
 
-    // Initialisierung der Walzen
+    // Konstanten für die Animation
+    const symbolHeight = 100; // Höhe eines Symbols in Pixel
+    const visibleRows = 3; // Anzahl der sichtbaren Reihen
+    const extraSymbols = 20; // Zusätzliche Symbole für die Animation
+
+    // Aktuelle Symbole speichern für jede Walze (3 sichtbare Symbole pro Walze)
+    let currentReelSymbols = [];
+
+    // Walzen initialisieren
     function initializeReels() {
-        reels.forEach(reel => {
-            // Jede Walze erhält 3 sichtbare Symbole plus extras für Animation
-            for (let i = 0; i < 15; i++) {
-                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-                const symbolElement = document.createElement('div');
-                symbolElement.className = `symbol ${randomSymbol.class}`;
-                symbolElement.textContent = randomSymbol.display;
-                reel.appendChild(symbolElement);
+        // Für jede Walze die aktuellen Symbole initialisieren
+        for (let i = 0; i < reels.length; i++) {
+            // Drei zufällige Symbole für die Startanzeige auswählen
+            const reelSymbols = [];
+            for (let j = 0; j < visibleRows; j++) {
+                reelSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
             }
+            currentReelSymbols.push(reelSymbols);
+
+            // Container für die Symbole erstellen
+            const reel = reels[i];
+            const symbolsContainer = document.createElement('div');
+            symbolsContainer.className = 'symbols-container';
+            reel.appendChild(symbolsContainer);
+
+            // Die aktuellen Symbole anzeigen
+            updateReelDisplay(i);
+        }
+    }
+
+    // Aktualisiert die Anzeige einer einzelnen Walze
+    function updateReelDisplay(reelIndex) {
+        const reel = reels[reelIndex];
+        const symbolsContainer = reel.querySelector('.symbols-container');
+
+        // Container leeren
+        while (symbolsContainer.firstChild) {
+            symbolsContainer.removeChild(symbolsContainer.firstChild);
+        }
+
+        // Die aktuellen Symbole anzeigen
+        currentReelSymbols[reelIndex].forEach(symbol => {
+            const symbolElement = document.createElement('div');
+            symbolElement.className = `symbol ${symbol.class}`;
+            symbolElement.textContent = symbol.display;
+            symbolsContainer.appendChild(symbolElement);
         });
+
+        // Position zurücksetzen
+        symbolsContainer.style.transition = 'none';
+        symbolsContainer.style.top = '0px';
     }
 
     // Eine einzelne Walze drehen
-    function spinReel(reel, duration, delay) {
+    function spinReel(reelIndex, duration, delay) {
         return new Promise(resolve => {
-            // Aktuelle Position merken
-            const currentPosition = parseInt(reel.style.top || '0');
+            const reel = reels[reelIndex];
+            const symbolsContainer = reel.querySelector('.symbols-container');
 
-            // Neue Symbole am Ende hinzufügen
-            for (let i = 0; i < 10; i++) {
-                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-                const symbolElement = document.createElement('div');
-                symbolElement.className = `symbol ${randomSymbol.class}`;
-                symbolElement.textContent = randomSymbol.display;
-                reel.appendChild(symbolElement);
+            // Neue zufällige Symbole für das Ende des Spins generieren
+            const newSymbols = [];
+            for (let i = 0; i < visibleRows; i++) {
+                newSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
             }
 
-            // Animation starten nach Verzögerung
-            setTimeout(() => {
-                reel.style.transition = `top ${duration}ms cubic-bezier(0.45, 0.05, 0.55, 0.95)`;
-                reel.style.top = `${currentPosition - 1000}px`;
+            // Container leeren für die Animation
+            while (symbolsContainer.firstChild) {
+                symbolsContainer.removeChild(symbolsContainer.firstChild);
+            }
 
-                // Nach Ende der Animation aufräumen
+            // Animation vorbereiten: 
+            // 1. Unsichtbare neue Symbole (werden später sichtbar nach der Animation)
+            newSymbols.forEach(symbol => {
+                const symbolElement = document.createElement('div');
+                symbolElement.className = `symbol ${symbol.class}`;
+                symbolElement.textContent = symbol.display;
+                symbolsContainer.appendChild(symbolElement);
+            });
+
+            // 2. Zufällige Symbole für die Animation (werden durchlaufen)
+            const animationSymbols = [];
+            for (let i = 0; i < extraSymbols; i++) {
+                animationSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
+            }
+
+            animationSymbols.forEach(symbol => {
+                const symbolElement = document.createElement('div');
+                symbolElement.className = `symbol ${symbol.class}`;
+                symbolElement.textContent = symbol.display;
+                symbolsContainer.appendChild(symbolElement);
+            });
+
+            // 3. Aktuelle Symbole am Ende des Containers (Startposition)
+            currentReelSymbols[reelIndex].forEach(symbol => {
+                const symbolElement = document.createElement('div');
+                symbolElement.className = `symbol ${symbol.class}`;
+                symbolElement.textContent = symbol.display;
+                symbolsContainer.appendChild(symbolElement);
+            });
+
+            // Ausgangslage einstellen: Container nach oben verschieben, sodass aktuelle Symbole sichtbar sind
+            const containerHeight = symbolsContainer.childElementCount * symbolHeight;
+            const startPosition = -(containerHeight - (visibleRows + currentReelSymbols[reelIndex].length) * symbolHeight);
+
+            symbolsContainer.style.transition = 'none';
+            symbolsContainer.style.top = `${startPosition}px`;
+
+            // Animation verzögern
+            setTimeout(() => {
+                // Animation starten: Von aktueller Position (aktuelle Symbole sichtbar) nach
+                // unten bewegen, bis nur die neuen Symbole sichtbar sind
+                const endPosition = 0;
+
+                // Animation starten
+                symbolsContainer.style.transition = `top ${duration}ms cubic-bezier(0.15, 0.85, 0.3, 1.0)`;
+                symbolsContainer.style.top = `${endPosition}px`;
+
+                // Nach Abschluss der Animation
                 setTimeout(() => {
-                    reel.style.transition = 'none';
-                    // Obere Elemente entfernen und nach unten setzen
-                    for (let i = 0; i < 10; i++) {
-                        if (reel.firstChild) {
-                            reel.removeChild(reel.firstChild);
-                        }
-                    }
-                    reel.style.top = `${currentPosition}px`;
+                    // Neue Symbole als aktuelle Symbole speichern
+                    currentReelSymbols[reelIndex] = newSymbols;
+
+                    // Display aktualisieren, um nur die neuen Symbole anzuzeigen
+                    updateReelDisplay(reelIndex);
+
+                    // Animation abgeschlossen
                     resolve();
                 }, duration);
             }, delay);
@@ -78,11 +160,11 @@
         spinButton.classList.add('disabled');
         spinButton.disabled = true;
 
-        // Nacheinander alle Walzen drehen mit unterschiedlicher Verzögerung
+        // Nacheinander alle Walzen drehen
         const promises = reels.map((reel, index) => {
-            const duration = 2000 + index * 500; // Erste Walze stoppt zuerst, letzte zuletzt
-            const delay = index * 300; // Walzen starten nacheinander
-            return spinReel(reel, duration, delay);
+            const duration = 2000 + index * 400; // Jede nachfolgende Walze dreht länger
+            const delay = index * 150; // Jede nachfolgende Walze startet später
+            return spinReel(index, duration, delay);
         });
 
         // Warten bis alle Walzen angehalten haben
@@ -103,7 +185,9 @@
         // Für dieses Beispiel: Einfach ein zufälliges Ergebnis zurückgeben
         const hasWon = Math.random() > 0.7;
         if (hasWon) {
-            alert('Glückwunsch! Du hast gewonnen!');
+            setTimeout(() => {
+                alert('Glückwunsch! Du hast gewonnen!');
+            }, 500);
         }
     }
 
