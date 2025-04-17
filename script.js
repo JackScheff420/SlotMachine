@@ -35,18 +35,126 @@
     const coinCountElement = document.getElementById('coin-count');
     const addCoinsButton = document.getElementById('add-coins-button');
 
+    // "Spin Cost" Element suchen oder erstellen
+    let spinCostElement = document.querySelector('.spin-cost');
+    if (!spinCostElement) {
+        spinCostElement = document.createElement('div');
+        spinCostElement.className = 'spin-cost';
+        // Nach dem Spin-Button einfügen
+        spinButton.parentNode.insertBefore(spinCostElement, spinButton.nextSibling);
+    }
+
     // Konstanten für die Animation
     const symbolHeight = 100; // Höhe eines Symbols in Pixel
     const visibleRows = 3; // Anzahl der sichtbaren Reihen
     const spinSymbols = 20; // Anzahl der Symbole für die Drehung
     const spinCost = 1; // Kosten für einen Spin in Coins
 
-    // Coins initialisieren
-    let coins = 1;
+    // Coins und Gratis-Spin-Status aus dem localStorage laden
+    let coins = loadCoins();
+    let lastFreeSpin = loadLastFreeSpin();
+    let isFreeSpin = false; // Flag, um zu speichern, ob der nächste Spin ein Gratis-Spin ist
+
     updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
+    updateSpinButton(); // Status des Spin-Buttons aktualisieren
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
+
+    // Funktion zum Laden der Coins aus dem localStorage
+    function loadCoins() {
+        const savedCoins = localStorage.getItem('slotMachineCoins');
+        return savedCoins ? parseInt(savedCoins) : 1; // Standardwert 1, wenn nichts gespeichert ist
+    }
+
+    // Funktion zum Speichern der Coins im localStorage
+    function saveCoins(amount) {
+        localStorage.setItem('slotMachineCoins', amount.toString());
+    }
+
+    // Funktion zum Laden des letzten Gratis-Spin-Datums aus dem localStorage
+    function loadLastFreeSpin() {
+        return localStorage.getItem('slotMachineLastFreeSpin') || ''; // Leerer String, wenn nichts gespeichert ist
+    }
+
+    // Funktion zum Speichern des Gratis-Spin-Datums im localStorage
+    function saveLastFreeSpin(date) {
+        localStorage.setItem('slotMachineLastFreeSpin', date);
+    }
+
+    // Prüfen, ob heute ein Gratis-Spin verfügbar ist
+    function isFreeSpinAvailableToday() {
+        if (!lastFreeSpin) return true; // Noch nie einen Gratis-Spin benutzt
+
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        return today !== lastFreeSpin;
+    }
+
+    // Aktualisieren des Spin-Button-Status
+    function updateSpinButton() {
+        const freeSpinAvailable = isFreeSpinAvailableToday();
+
+        // Zurücksetzen des Buttons
+        spinButton.classList.remove('free-spin', 'disabled', 'error');
+
+        if (freeSpinAvailable) {
+            // Gratis-Spin ist verfügbar
+            spinButton.textContent = "GRATIS SPIN";
+            spinButton.classList.add('free-spin');
+            spinButton.disabled = false;
+            isFreeSpin = true;
+
+            // Kostenanzeige ausblenden
+            spinCostElement.style.display = 'none';
+        } else {
+            // Normaler Spin, Button je nach Coin-Stand aktivieren/deaktivieren
+            isFreeSpin = false;
+            spinButton.textContent = "SPIN";
+
+            // Kostenanzeige einblenden
+            spinCostElement.style.display = 'block';
+            spinCostElement.textContent = `Kosten: ${spinCost} Coin${spinCost !== 1 ? 's' : ''}`;
+
+            // Button-Status basierend auf verfügbaren Coins
+            if (coins < spinCost) {
+                spinButton.classList.add('disabled');
+                spinButton.disabled = true;
+            } else {
+                spinButton.disabled = false;
+            }
+        }
+
+        // Zeit bis zum nächsten Gratis-Spin anzeigen, wenn der heutige bereits genutzt wurde
+        if (!freeSpinAvailable) {
+            // Info für den nächsten Gratis-Spin anzeigen
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            const now = new Date();
+            const hoursLeft = Math.floor((tomorrow - now) / 1000 / 60 / 60);
+            const minutesLeft = Math.floor(((tomorrow - now) / 1000 / 60) % 60);
+
+            // Element für die Gratis-Spin-Info aktualisieren oder erstellen
+            let freeSpinInfoElement = document.getElementById('free-spin-info');
+            if (!freeSpinInfoElement) {
+                freeSpinInfoElement = document.createElement('div');
+                freeSpinInfoElement.id = 'free-spin-info';
+                freeSpinInfoElement.className = 'free-spin-info';
+                // Nach dem Spin-Button einfügen
+                spinButton.parentNode.insertBefore(freeSpinInfoElement, spinButton.nextSibling);
+            }
+
+            freeSpinInfoElement.textContent = `Nächster Gratis-Spin in ${hoursLeft}h ${minutesLeft}m`;
+            freeSpinInfoElement.style.display = 'block';
+        } else {
+            // Gratis-Spin-Info ausblenden, wenn verfügbar
+            const freeSpinInfoElement = document.getElementById('free-spin-info');
+            if (freeSpinInfoElement) {
+                freeSpinInfoElement.style.display = 'none';
+            }
+        }
+    }
 
     // Funktion zum Auswählen eines zufälligen Symbols basierend auf Gewichtung
     function getRandomSymbol() {
@@ -191,26 +299,39 @@
         });
     }
 
-    // Alle Walzen drehen
-    async function spin() {
+    // Spin ausführen (kombinierte Funktion für normale und Gratis-Spins)
+    async function performSpin() {
         if (spinButton.disabled) return;
 
-        // Prüfen, ob genügend Coins vorhanden sind
-        if (coins < spinCost) {
-            showMessage("Nicht genug Coins! Bitte füge mehr Coins hinzu.");
-            return;
-        }
+        let isGratisSpin = isFreeSpin;
 
-        // Coins abziehen
-        coins -= spinCost;
-        // Hier keine Error-Anzeige während des Spins
-        updateCoinDisplay(false);
+        // Wenn es kein Gratis-Spin ist, Coins prüfen und abziehen
+        if (!isGratisSpin) {
+            // Prüfen, ob genügend Coins vorhanden sind
+            if (coins < spinCost) {
+                showMessage("Nicht genug Coins! Bitte füge mehr Coins hinzu.");
+                return;
+            }
+
+            // Coins abziehen
+            coins -= spinCost;
+            // Coin-Zähler aktualisieren und im localStorage speichern
+            updateCoinDisplay(false);
+            saveCoins(coins);
+        } else {
+            // Gratis-Spin registrieren
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            lastFreeSpin = today;
+            saveLastFreeSpin(today);
+
+            // Meldung anzeigen
+            showWinMessage("Dein täglicher GRATIS SPIN!");
+        }
 
         // Button deaktivieren während des Spins
         spinButton.classList.add('disabled');
         spinButton.disabled = true;
-        // Immer normalen Text während des Spins anzeigen
-        spinButton.textContent = "SPIN";
+        spinButton.textContent = isGratisSpin ? "GRATIS SPIN" : "SPIN";
 
         // Nacheinander alle Walzen drehen
         const promises = reels.map((reel, index) => {
@@ -222,8 +343,9 @@
         // Warten bis alle Walzen angehalten haben
         await Promise.all(promises);
 
-        // NACH dem Spin den Button-Status aktualisieren, mit Error-Anzeige wenn nötig
+        // Button-Status nach dem Spin aktualisieren
         updateCoinDisplay(true);
+        updateSpinButton();
 
         // Gewinnkombinationen prüfen
         checkWinningCombinations();
@@ -239,6 +361,11 @@
     function updateCoinDisplay(showError) {
         coinCountElement.textContent = coins;
 
+        // Wenn ein Gratis-Spin verfügbar ist, keine Error-Anzeige
+        if (isFreeSpinAvailableToday()) {
+            return;
+        }
+
         // Spin-Button-Status basierend auf Coin-Anzahl anpassen
         if (coins < spinCost) {
             if (showError) {
@@ -249,7 +376,7 @@
                 spinButton.disabled = true;
 
                 // Spin-Kosten-Text ebenfalls blinken lassen
-                document.querySelector('.spin-cost').classList.add('error');
+                spinCostElement.classList.add('error');
             } else {
                 // Deaktivieren ohne Error-Anzeige
                 spinButton.classList.remove('error');
@@ -258,7 +385,7 @@
                 spinButton.disabled = true;
 
                 // Auch kein Blinken für den Spin-Kosten-Text
-                document.querySelector('.spin-cost').classList.remove('error');
+                spinCostElement.classList.remove('error');
             }
         } else {
             // Normalen Zustand wiederherstellen
@@ -267,7 +394,7 @@
             spinButton.disabled = false;
 
             // Spin-Kosten-Text-Animation entfernen
-            document.querySelector('.spin-cost').classList.remove('error');
+            spinCostElement.classList.remove('error');
         }
     }
 
@@ -275,6 +402,8 @@
     function addCoins() {
         coins += 5;
         updateCoinDisplay(false); // Bei Coins-Erhöhung keinen Error anzeigen
+        saveCoins(coins); // Coins im localStorage speichern
+        updateSpinButton(); // Button-Status aktualisieren
     }
 
     // Gewinnkombinationen prüfen
@@ -349,6 +478,7 @@
             // Coins hinzufügen
             coins += totalWinAmount;
             updateCoinDisplay(true);
+            saveCoins(coins); // Coins im localStorage speichern
 
             // Sequentiell alle Gewinnkombinationen animieren
             animateWinningSequences(winningSequences, 0, totalWinAmount);
@@ -356,6 +486,7 @@
             // Sofort nach dem Spin den Button wieder aktivieren, wenn es keine Gewinne gibt
             spinButton.classList.remove('disabled');
             spinButton.disabled = false;
+            updateSpinButton(); // Button-Status aktualisieren
         }
     }
 
@@ -392,6 +523,7 @@
             setTimeout(() => {
                 spinButton.classList.remove('disabled');
                 spinButton.disabled = false;
+                updateSpinButton(); // Button-Status aktualisieren
             }, 2000); // 2 Sekunden warten, bis die letzte Meldung ausgeblendet ist
             return;
         }
@@ -505,21 +637,44 @@
                 0% { opacity: 0.4; transform: scale(0.95); }
                 100% { opacity: 1; transform: scale(1.05); }
             }
+            
+            /* Stil für den Spin-Button als Gratis-Spin */
+            #spin-button.free-spin {
+                background-color: #4CAF50;
+                color: white;
+                animation: glow 1.5s infinite alternate;
+            }
+            
+            @keyframes glow {
+                0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+                100% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+            }
+            
+            /* Stil für den Countdown zum nächsten Gratis-Spin */
+            .free-spin-info {
+                font-size: 0.8em;
+                color: #aaa;
+                text-align: center;
+                margin-top: 5px;
+                font-style: italic;
+            }
         `;
             document.head.appendChild(styleElement);
         }
     }
 
-    // Beim Laden der Seite die Stile hinzufügen
-    document.addEventListener('DOMContentLoaded', function () {
-        addRequiredStyles();
-        // Rest der ursprünglichen Initialisierung...
-    });
-
     // Event-Listener hinzufügen
-    spinButton.addEventListener('click', spin);
+    spinButton.addEventListener('click', performSpin);
     addCoinsButton.addEventListener('click', addCoins);
 
-    // Initialisierung
+    // Beim Laden der Seite die Stile hinzufügen und die Walzen initialisieren
+    addRequiredStyles();
     initializeReels();
+
+    // Timer für die regelmäßige Aktualisierung des Countdown-Timers
+    setInterval(() => {
+        if (!isFreeSpinAvailableToday()) {
+            updateSpinButton(); // Nur aktualisieren, wenn kein Gratis-Spin verfügbar ist
+        }
+    }, 60000); // Jede Minute aktualisieren
 });
