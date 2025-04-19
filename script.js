@@ -40,12 +40,180 @@
     const spinSymbols = 20; // Anzahl der Symbole für die Drehung
     const spinCost = 1; // Kosten für einen Spin in Coins
 
-    // Coins initialisieren
-    let coins = 1;
+    // LocalStorage Keys
+    const COINS_KEY = 'slotMachineCoins';
+    const LAST_FREE_SPIN_KEY = 'slotMachineLastFreeSpin';
+
+    // Timer-Element für den Free Spin erstellen
+    let freeSpinTimerElement = document.getElementById('free-spin-timer');
+    if (!freeSpinTimerElement) {
+        freeSpinTimerElement = document.createElement('div');
+        freeSpinTimerElement.id = 'free-spin-timer';
+        freeSpinTimerElement.className = 'free-spin-timer';
+        // Timer unter den Spin-Button einfügen
+        spinButton.parentNode.insertBefore(freeSpinTimerElement, spinButton.nextSibling);
+
+        // Stil für den Free Spin Timer
+        const style = document.createElement('style');
+        style.textContent = `
+            .free-spin-timer {
+                font-size: 12px;
+                color: #777;
+                text-align: center;
+                margin-top: 5px;
+                height: 18px;
+                overflow: hidden;
+                transition: opacity 0.3s;
+            }
+            
+            .free-spin-timer.hidden {
+                opacity: 0;
+                height: 0;
+                margin-top: 0;
+            }
+            
+            /* Stil für den Free Spin Button */
+            #spin-button.free-spin {
+                background-color: #4CAF50;
+                color: white;
+                transition: background-color 0.3s, color 0.3s;
+                animation: pulse-green 2s infinite;
+            }
+            
+            @keyframes pulse-green {
+                0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+                70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Coins und Free Spin Status initialisieren
+    let coins = loadCoinsFromStorage();
+    let hasFreeSpin = checkForFreeSpin();
+
+    updateSpinButtonState();
     updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
+
+    // Lädt Coins aus dem localStorage oder setzt auf Standardwert
+    function loadCoinsFromStorage() {
+        const savedCoins = localStorage.getItem(COINS_KEY);
+        return savedCoins !== null ? parseInt(savedCoins) : 10; // Standardwert: 10 Coins
+    }
+
+    // Speichert Coins im localStorage
+    function saveCoinsToStorage() {
+        localStorage.setItem(COINS_KEY, coins.toString());
+    }
+
+    // Prüft, ob heute ein kostenloser Spin verfügbar ist
+    function checkForFreeSpin() {
+        const lastFreeSpin = localStorage.getItem(LAST_FREE_SPIN_KEY);
+
+        if (!lastFreeSpin) {
+            return true; // Noch nie einen Free Spin verwendet
+        }
+
+        const lastDate = new Date(parseInt(lastFreeSpin));
+        const today = new Date();
+
+        // Prüfen ob das letzte Datum vor dem heutigen Tag liegt
+        return lastDate.getDate() !== today.getDate() ||
+            lastDate.getMonth() !== today.getMonth() ||
+            lastDate.getFullYear() !== today.getFullYear();
+    }
+
+    // Markiert den kostenlosen Spin als verwendet
+    function markFreeSpinUsed() {
+        localStorage.setItem(LAST_FREE_SPIN_KEY, Date.now().toString());
+        hasFreeSpin = false;
+    }
+
+    // Aktualisiert den Status des Spin-Buttons basierend auf Free Spin und Coins
+    function updateSpinButtonState() {
+        // Free Spin verfügbar - Button entsprechend anzeigen
+        if (hasFreeSpin) {
+            spinButton.classList.add('free-spin');
+            spinButton.classList.remove('error', 'disabled');
+            spinButton.textContent = "FREE SPIN";
+            spinButton.disabled = false;
+
+            // Timer ausblenden
+            freeSpinTimerElement.classList.add('hidden');
+            freeSpinTimerElement.textContent = '';
+
+            // Spin-Kosten-Text-Animation entfernen
+            document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.remove('error');
+        }
+        // Kein Free Spin, aber genug Coins
+        else if (coins >= spinCost) {
+            spinButton.classList.remove('free-spin', 'error', 'disabled');
+            spinButton.textContent = "SPIN";
+            spinButton.disabled = false;
+
+            // Timer für nächsten Free Spin anzeigen
+            updateFreeSpinTimer();
+
+            // Spin-Kosten-Text-Animation entfernen
+            document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.remove('error');
+        }
+        // Weder Free Spin noch genug Coins
+        else {
+            spinButton.classList.remove('free-spin');
+            spinButton.classList.add('error');
+            spinButton.classList.remove('disabled');
+            spinButton.textContent = "#ERROR#";
+            spinButton.disabled = true;
+
+            // Timer für nächsten Free Spin anzeigen
+            updateFreeSpinTimer();
+
+            // Spin-Kosten-Text ebenfalls blinken lassen
+            document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.add('error');
+        }
+    }
+
+    // Aktualisiert den Free Spin Timer
+    function updateFreeSpinTimer() {
+        if (hasFreeSpin) {
+            freeSpinTimerElement.classList.add('hidden');
+            return;
+        }
+
+        freeSpinTimerElement.classList.remove('hidden');
+
+        const nextResetTime = getNextResetTime();
+        const now = Date.now();
+        const timeRemaining = nextResetTime - now;
+
+        if (timeRemaining <= 0) {
+            // Wenn Zeit abgelaufen ist, prüfen ob Free Spin jetzt verfügbar
+            hasFreeSpin = checkForFreeSpin();
+            if (hasFreeSpin) {
+                updateSpinButtonState();
+                return;
+            }
+        }
+
+        // Zeit bis zum nächsten Free Spin formatieren
+        const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+        const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+
+        freeSpinTimerElement.textContent = `Nächster Free Spin in ${hours}h ${minutes}min`;
+    }
+
+    // Berechnet die Zeit bis zum nächsten Reset (Mitternacht)
+    function getNextResetTime() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        return tomorrow.getTime();
+    }
 
     // Funktion zum Auswählen eines zufälligen Symbols basierend auf Gewichtung
     function getRandomSymbol() {
@@ -194,22 +362,28 @@
     async function spin() {
         if (spinButton.disabled) return;
 
-        // Prüfen, ob genügend Coins vorhanden sind
-        if (coins < spinCost) {
+        const useFreeSpin = hasFreeSpin;
+
+        // Prüfen, ob genügend Coins vorhanden sind oder Free Spin verfügbar
+        if (!useFreeSpin && coins < spinCost) {
             showMessage("Nicht genug Coins! Bitte füge mehr Coins hinzu.");
             return;
         }
 
-        // Coins abziehen
-        coins -= spinCost;
-        // Hier keine Error-Anzeige während des Spins
-        updateCoinDisplay(false);
+        // Coins abziehen oder Free Spin markieren
+        if (!useFreeSpin) {
+            coins -= spinCost;
+        } else {
+            markFreeSpinUsed();
+        }
+
+        // Coins im localStorage speichern
+        saveCoinsToStorage();
 
         // Button deaktivieren während des Spins
+        spinButton.classList.remove('free-spin', 'error');
         spinButton.classList.add('disabled');
         spinButton.disabled = true;
-        // Immer normalen Text während des Spins anzeigen
-        spinButton.textContent = "SPIN";
 
         // Nacheinander alle Walzen drehen
         const promises = reels.map((reel, index) => {
@@ -221,8 +395,9 @@
         // Warten bis alle Walzen angehalten haben
         await Promise.all(promises);
 
-        // NACH dem Spin den Button-Status aktualisieren, mit Error-Anzeige wenn nötig
+        // NACH dem Spin den Button-Status aktualisieren
         updateCoinDisplay(true);
+        updateSpinButtonState();
 
         // Gewinnkombinationen prüfen
         checkWinningCombinations();
@@ -238,36 +413,20 @@
     function updateCoinDisplay(showError) {
         coinCountElement.textContent = coins;
 
-        // Spin-Button-Status basierend auf Coin-Anzahl anpassen
-        if (coins < spinCost) {
-            if (showError) {
-                // Error-Zustand anzeigen
-                spinButton.classList.add('error');
-                spinButton.classList.remove('disabled');
-                spinButton.textContent = "#ERROR#";
-                spinButton.disabled = true;
-
-                // Spin-Kosten-Text ebenfalls blinken lassen
-                document.querySelector('.spin-cost').classList.add('error');
-            } else {
-                // Deaktivieren ohne Error-Anzeige
-                spinButton.classList.remove('error');
-                spinButton.classList.add('disabled');
-                spinButton.textContent = "SPIN";
-                spinButton.disabled = true;
-
-                // Auch kein Blinken für den Spin-Kosten-Text
-                document.querySelector('.spin-cost').classList.remove('error');
-            }
+        // Wir aktualisieren nur den Coin-Count hier, den Button-Status regeln wir in updateSpinButtonState()
+        if (hasFreeSpin) {
+            // Keine Error-Anzeige wenn Free Spin verfügbar ist
+            document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.remove('error');
+        } else if (coins < spinCost && showError) {
+            // Error-Status für Spin-Kosten-Text wenn zu wenig Coins
+            document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.add('error');
         } else {
-            // Normalen Zustand wiederherstellen
-            spinButton.classList.remove('error', 'disabled');
-            spinButton.textContent = "SPIN";
-            spinButton.disabled = false;
-
-            // Spin-Kosten-Text-Animation entfernen
-            document.querySelector('.spin-cost').classList.remove('error');
+            // Keine Error-Anzeige
+            document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.remove('error');
         }
+
+        // Auch den Button-Status aktualisieren
+        updateSpinButtonState();
     }
 
     // Gewinnkombinationen prüfen
@@ -341,14 +500,15 @@
         if (winningSequences.length > 0) {
             // Coins hinzufügen
             coins += totalWinAmount;
+            // Im LocalStorage speichern
+            saveCoinsToStorage();
             updateCoinDisplay(true);
 
             // Sequentiell alle Gewinnkombinationen animieren
             animateWinningSequences(winningSequences, 0, totalWinAmount);
         } else {
             // Sofort nach dem Spin den Button wieder aktivieren, wenn es keine Gewinne gibt
-            spinButton.classList.remove('disabled');
-            spinButton.disabled = false;
+            updateSpinButtonState();
         }
     }
 
@@ -383,8 +543,7 @@
 
             // Button wieder aktivieren nach kurzer Verzögerung
             setTimeout(() => {
-                spinButton.classList.remove('disabled');
-                spinButton.disabled = false;
+                updateSpinButtonState();
             }, 2000); // 2 Sekunden warten, bis die letzte Meldung ausgeblendet ist
             return;
         }
@@ -503,15 +662,30 @@
         }
     }
 
-    // Beim Laden der Seite die Stile hinzufügen
-    document.addEventListener('DOMContentLoaded', function () {
-        addRequiredStyles();
-        // Rest der ursprünglichen Initialisierung...
-    });
+    // Aktualisiert den Free Spin Timer alle 60 Sekunden
+    function startTimerUpdater() {
+        // Sofort aktualisieren und dann alle 60 Sekunden
+        updateFreeSpinTimer();
+        setInterval(() => {
+            // Prüfen, ob ein neuer Tag begonnen hat
+            const newHasFreeSpin = checkForFreeSpin();
+            if (newHasFreeSpin !== hasFreeSpin) {
+                hasFreeSpin = newHasFreeSpin;
+                updateSpinButtonState();
+            } else {
+                // Nur den Countdown aktualisieren
+                if (!hasFreeSpin) {
+                    updateFreeSpinTimer();
+                }
+            }
+        }, 60000); // Jede Minute aktualisieren
+    }
 
     // Event-Listener hinzufügen
     spinButton.addEventListener('click', spin);
 
     // Initialisierung
+    addRequiredStyles();
     initializeReels();
+    startTimerUpdater();
 });
