@@ -33,7 +33,6 @@
     ];
     const spinButton = document.getElementById('spin-button');
     const coinCountElement = document.getElementById('coin-count');
-    const addCoinsButton = document.getElementById('add-coins-button');
 
     // Konstanten für die Animation
     const symbolHeight = 100; // Höhe eines Symbols in Pixel
@@ -269,12 +268,6 @@
             // Spin-Kosten-Text-Animation entfernen
             document.querySelector('.spin-cost').classList.remove('error');
         }
-    }
-
-    // Coins hinzufügen (für Test-Zwecke)
-    function addCoins() {
-        coins += 5;
-        updateCoinDisplay(false); // Bei Coins-Erhöhung keinen Error anzeigen
     }
 
     // Gewinnkombinationen prüfen
@@ -518,7 +511,6 @@
 
     // Event-Listener hinzufügen
     spinButton.addEventListener('click', spin);
-    addCoinsButton.addEventListener('click', addCoins);
 
     // Initialisierung
     initializeReels();

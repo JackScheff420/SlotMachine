@@ -4,6 +4,163 @@
     box-sizing: border-box;
 }
 
+html, body {
+    overflow: hidden;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+
+    /* Stronger scanlines */
+    background-image: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.3),
+            rgba(0, 0, 0, 0.3) 2px,
+            transparent 2px,
+            transparent 4px
+    );
+
+    /* Vignette effect (darker corners) */
+    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.9);
+
+    /* Apply filter effects for more retro look */
+    filter: contrast(1.2) brightness(0.85) saturate(0.7) sepia(0.2);
+
+    /* Add some grain */
+    mix-blend-mode: overlay;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+            ellipse at center,
+            transparent 40%,
+            rgba(0, 0, 0, 0.5) 100%
+    );
+    pointer-events: none;
+    z-index: 1001;
+}
+
+@keyframes badReception {
+    0%, 95% {
+        transform: translateX(0) skew(0deg);
+        opacity: 1;
+    }
+    96% {
+        transform: translateX(-10px) skew(-5deg);
+        opacity: 0.9;
+    }
+    97% {
+        transform: translateX(15px) skew(10deg);
+        opacity: 0.8;
+    }
+    98% {
+        transform: translateX(-5px) skew(-15deg);
+        opacity: 0.7;
+    }
+    99% {
+        transform: translateX(5px) skew(5deg);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translateX(0) skew(0deg);
+        opacity: 1;
+    }
+}
+
+.tv-static {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuMDUiLz48L3N2Zz4=');
+    pointer-events: none;
+    z-index: 1002;
+    opacity: 0.2;
+}
+
+/* Rolling distortion bar that moves from bottom to top */
+.rolling-bar {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 40px; /* Height of the distortion bar */
+    background: rgba(255, 255, 255, 0.1); /* Slight white glow */
+    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.15); /* Glow effect */
+    pointer-events: none;
+    z-index: 1003;
+    animation: rollBar 30s infinite;
+    transform-origin: center;
+}
+
+@keyframes rollBar {
+    0%, 80% {
+        top: 140%; /* Start outside the bottom edge of the viewport */
+        opacity: 0;
+        filter: blur(2px);
+    }
+    85% {
+        top: 140%;
+        opacity: 1;
+        filter: blur(2px);
+    }
+    95% {
+        top: -20%; /* Move outside the top edge of the viewport */
+        opacity: 1;
+        filter: blur(2px);
+    }
+    100% {
+        top: -40%; /* Fully outside the top edge of the viewport */
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes imageDistortion {
+    0%, 80% {
+        transform: scale(1) skew(0deg, 0deg);
+        filter: brightness(1);
+    }
+    85%, 95% {
+        /* This will be synchronized with the rollBar animation */
+        filter: brightness(1.1);
+    }
+    100% {
+        transform: scale(1) skew(0deg, 0deg);
+        filter: brightness(1);
+    }
+}
+
+@keyframes colorShift {
+    0%, 99% {
+        text-shadow: none;
+        filter: none;
+    }
+    33.6% {
+        text-shadow: -3px 0 rgba(255,0,0,0.5), 3px 0 rgba(0,0,255,0.5);
+        filter: hue-rotate(20deg);
+    }
+    34.5% {
+        text-shadow: none;
+        filter: none;
+    }
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #1a1a1a;
@@ -12,6 +169,64 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    animation: badReception 8s infinite, imageDistortion 12s infinite, colorShift 15s infinite;
+}
+
+@keyframes scanlineFlicker {
+    0% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.9;
+    }
+}
+
+body::before {
+    animation: scanlineFlicker 0.1s infinite;
+}
+
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(40, 150, 150, 0.05);
+    mix-blend-mode: color;
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* Make sure all content is layered properly */
+.container, .game-container, .slot-machine, .coin-box {
+    position: relative;
+    z-index: 10;
+}
+
+.rolling-bar::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 80px; /* Larger than the bar for extended effect */
+    background: transparent;
+    pointer-events: none;
+    animation: localDistortion 0.2s infinite alternate;
+}
+
+@keyframes localDistortion {
+    0% {
+        backdrop-filter: blur(1px) brightness(1.2);
+    }
+    100% {
+        backdrop-filter: blur(2px) brightness(1.3);
+    }
 }
 
 .container {
@@ -65,31 +280,6 @@ body {
 
 .coin-icon {
     font-size: 32px;
-}
-
-#add-coins-button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 3px 0 #2980b9;
-    width: 100%;
-}
-
-#add-coins-button:hover {
-    background-color: #2980b9;
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #1c638e;
-}
-
-#add-coins-button:active {
-    transform: translateY(3px);
-    box-shadow: none;
 }
 
 @keyframes errorBlink {
