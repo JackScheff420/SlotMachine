@@ -25,6 +25,44 @@
             </div>
         </div>
 
+        <!-- Powerup Panel -->
+        <div class="powerup-panel">
+            <h2>Powerups</h2>
+            <div class="powerup-shop">
+                <div class="powerup-item" data-powerup="double_money">
+                    <div class="powerup-icon">💰</div>
+                    <div class="powerup-info">
+                        <div class="powerup-name">Double Money</div>
+                        <div class="powerup-cost">5 Coins</div>
+                        <div class="powerup-desc">Double winnings for 3 spins</div>
+                    </div>
+                    <button class="powerup-buy-btn" onclick="purchasePowerup('double_money')">BUY</button>
+                </div>
+                <div class="powerup-item" data-powerup="lucky_sevens">
+                    <div class="powerup-icon">🍀</div>
+                    <div class="powerup-info">
+                        <div class="powerup-name">Lucky 7s</div>
+                        <div class="powerup-cost">10 Coins</div>
+                        <div class="powerup-desc">More rare symbols for 5 spins</div>
+                    </div>
+                    <button class="powerup-buy-btn" onclick="purchasePowerup('lucky_sevens')">BUY</button>
+                </div>
+                <div class="powerup-item" data-powerup="symbol_lock">
+                    <div class="powerup-icon">🔒</div>
+                    <div class="powerup-info">
+                        <div class="powerup-name">Symbol Lock</div>
+                        <div class="powerup-cost">15 Coins</div>
+                        <div class="powerup-desc">Lock 2 reels on next spin</div>
+                    </div>
+                    <button class="powerup-buy-btn" onclick="purchasePowerup('symbol_lock')">BUY</button>
+                </div>
+            </div>
+            <div class="active-powerups" id="active-powerups">
+                <h3>Active Powerups</h3>
+                <div class="active-list" id="active-powerups-list"></div>
+            </div>
+        </div>
+
         <!-- Bestehende Slot Machine -->
         <div class="slot-machine">
             <div class="slot-window">

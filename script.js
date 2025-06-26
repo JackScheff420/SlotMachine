@@ -43,6 +43,35 @@
     // LocalStorage Keys
     const COINS_KEY = 'slotMachineCoins';
     const LAST_FREE_SPIN_KEY = 'slotMachineLastFreeSpin';
+    const POWERUPS_KEY = 'slotMachinePowerups';
+
+    // Powerup definitions
+    const powerups = [
+        {
+            id: 'double_money',
+            name: 'Double Money',
+            description: 'Double winnings for 3 spins',
+            cost: 5,
+            duration: 3,
+            icon: '💰'
+        },
+        {
+            id: 'lucky_sevens',
+            name: 'Lucky 7s',
+            description: 'Higher chance for rare symbols for 5 spins',
+            cost: 10,
+            duration: 5,
+            icon: '🍀'
+        },
+        {
+            id: 'symbol_lock',
+            name: 'Symbol Lock',
+            description: 'Lock 2 reels on next spin',
+            cost: 15,
+            duration: 1,
+            icon: '🔒'
+        }
+    ];
 
     // Timer-Element für den Free Spin erstellen
     let freeSpinTimerElement = document.getElementById('free-spin-timer');
@@ -92,9 +121,12 @@
     // Coins und Free Spin Status initialisieren
     let coins = loadCoinsFromStorage();
     let hasFreeSpin = checkForFreeSpin();
+    let activePowerups = loadPowerupsFromStorage();
+    let lockedReels = []; // For symbol lock powerup
 
     updateSpinButtonState();
     updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
+    updatePowerupDisplay();
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
@@ -110,7 +142,67 @@
         localStorage.setItem(COINS_KEY, coins.toString());
     }
 
-    // Prüft, ob heute ein kostenloser Spin verfügbar ist
+    // Lädt Powerups aus dem localStorage
+    function loadPowerupsFromStorage() {
+        const savedPowerups = localStorage.getItem(POWERUPS_KEY);
+        return savedPowerups ? JSON.parse(savedPowerups) : {};
+    }
+
+    // Speichert Powerups im localStorage
+    function savePowerupsToStorage() {
+        localStorage.setItem(POWERUPS_KEY, JSON.stringify(activePowerups));
+    }
+
+    // Powerup-Management-Funktionen
+    function isPowerupActive(powerupId) {
+        return activePowerups[powerupId] && activePowerups[powerupId] > 0;
+    }
+
+    function activatePowerup(powerupId, duration) {
+        activePowerups[powerupId] = duration;
+        savePowerupsToStorage();
+        updatePowerupDisplay();
+    }
+
+    function decrementPowerups() {
+        let updated = false;
+        for (const powerupId in activePowerups) {
+            if (activePowerups[powerupId] > 0) {
+                activePowerups[powerupId]--;
+                updated = true;
+                if (activePowerups[powerupId] <= 0) {
+                    delete activePowerups[powerupId];
+                }
+            }
+        }
+        if (updated) {
+            savePowerupsToStorage();
+            updatePowerupDisplay();
+        }
+    }
+
+    function purchasePowerup(powerupId) {
+        const powerup = powerups.find(p => p.id === powerupId);
+        if (!powerup) return false;
+        
+        if (coins < powerup.cost) {
+            showMessage(`Nicht genug Coins! Du brauchst ${powerup.cost} Coins für ${powerup.name}.`);
+            return false;
+        }
+
+        // Special handling for symbol lock
+        if (powerupId === 'symbol_lock' && isPowerupActive('symbol_lock')) {
+            showMessage("Symbol Lock ist bereits aktiv!");
+            return false;
+        }
+
+        coins -= powerup.cost;
+        saveCoinsToStorage();
+        activatePowerup(powerupId, powerup.duration);
+        updateCoinDisplay(true);
+        showMessage(`${powerup.name} aktiviert!`);
+        return true;
+    }
     function checkForFreeSpin() {
         const lastFreeSpin = localStorage.getItem(LAST_FREE_SPIN_KEY);
 
@@ -217,14 +309,27 @@
 
     // Funktion zum Auswählen eines zufälligen Symbols basierend auf Gewichtung
     function getRandomSymbol() {
+        let symbolsToUse = symbols;
+        
+        // Lucky 7s powerup: Increase weight of rare symbols
+        if (isPowerupActive('lucky_sevens')) {
+            symbolsToUse = symbols.map(symbol => {
+                // Increase weight for rare symbols (7, bell, cherry)
+                if (['7', 'bell', 'cherry'].includes(symbol.name)) {
+                    return { ...symbol, weight: symbol.weight * 3 };
+                }
+                return symbol;
+            });
+        }
+
         // Gesamtgewichtung berechnen
-        const totalWeight = symbols.reduce((sum, symbol) => sum + symbol.weight, 0);
+        const totalWeight = symbolsToUse.reduce((sum, symbol) => sum + symbol.weight, 0);
 
         // Zufallszahl zwischen 0 und der Gesamtgewichtung generieren
         let randomValue = Math.random() * totalWeight;
 
         // Symbol basierend auf Gewichtung auswählen
-        for (const symbol of symbols) {
+        for (const symbol of symbolsToUse) {
             randomValue -= symbol.weight;
             if (randomValue <= 0) {
                 return symbol;
@@ -232,7 +337,7 @@
         }
 
         // Fallback für unerwartete Fälle
-        return symbols[symbols.length - 1];
+        return symbolsToUse[symbolsToUse.length - 1];
     }
 
     // Walzen initialisieren
@@ -283,6 +388,15 @@
         return new Promise(resolve => {
             const reel = reels[reelIndex];
             const symbolsContainer = reel.querySelector('.symbols-container');
+
+            // Check if this reel is locked
+            if (lockedReels.includes(reelIndex)) {
+                // Reel is locked, don't change its symbols
+                setTimeout(() => {
+                    resolve();
+                }, duration + delay);
+                return;
+            }
 
             // 1. Die vorhandenen Symbole beibehalten und nach oben kopieren
             const existingSymbols = [...currentReelSymbols[reelIndex]];
@@ -370,6 +484,13 @@
             return;
         }
 
+        // Check for symbol lock powerup before spin
+        if (isPowerupActive('symbol_lock') && lockedReels.length === 0) {
+            // Allow player to select reels to lock
+            showReelSelection();
+            return; // Wait for reel selection
+        }
+
         // Coins abziehen oder Free Spin markieren
         if (!useFreeSpin) {
             coins -= spinCost;
@@ -395,6 +516,13 @@
         // Warten bis alle Walzen angehalten haben
         await Promise.all(promises);
 
+        // Clear locked reels after spin
+        lockedReels = [];
+        removeReelLocks();
+
+        // Decrement powerup durations after spin
+        decrementPowerups();
+
         // NACH dem Spin den Button-Status aktualisieren
         updateCoinDisplay(true);
         updateSpinButtonState();
@@ -413,6 +541,13 @@
     function updateCoinDisplay(showError) {
         coinCountElement.textContent = coins;
 
+        // Add double money indicator if active
+        if (isPowerupActive('double_money')) {
+            coinCountElement.parentElement.classList.add('double-money-active');
+        } else {
+            coinCountElement.parentElement.classList.remove('double-money-active');
+        }
+
         // Wir aktualisieren nur den Coin-Count hier, den Button-Status regeln wir in updateSpinButtonState()
         if (hasFreeSpin) {
             // Keine Error-Anzeige wenn Free Spin verfügbar ist
@@ -427,6 +562,7 @@
 
         // Auch den Button-Status aktualisieren
         updateSpinButtonState();
+        updatePowerupDisplay();
     }
 
     // Gewinnkombinationen prüfen
@@ -498,6 +634,11 @@
 
         // Wenn es Gewinnkombinationen gibt
         if (winningSequences.length > 0) {
+            // Apply double money powerup if active
+            if (isPowerupActive('double_money')) {
+                totalWinAmount *= 2;
+            }
+            
             // Coins hinzufügen
             coins += totalWinAmount;
             // Im LocalStorage speichern
@@ -610,7 +751,102 @@
         }, 3000);
     }
 
-    // Sicherstellen, dass die benötigten CSS-Stile vorhanden sind
+    // Symbol Lock powerup functions
+    let reelSelectionActive = false;
+    
+    function showReelSelection() {
+        showMessage("Symbol Lock aktiv! Klicke auf 2 Walzen um sie zu sperren.");
+        reelSelectionActive = true;
+        
+        // Add click handlers to reels
+        reels.forEach((reel, index) => {
+            reel.classList.add('selectable');
+        });
+    }
+
+    function handleReelClick(event) {
+        if (!reelSelectionActive) return;
+        
+        // Find which reel was clicked
+        const clickedReel = event.currentTarget;
+        const reelIndex = reels.indexOf(clickedReel);
+        
+        if (reelIndex === -1) return;
+        
+        selectReel(reelIndex);
+    }
+
+    function selectReel(reelIndex) {
+        const reel = reels[reelIndex];
+        
+        if (lockedReels.includes(reelIndex)) {
+            // Deselect reel
+            lockedReels = lockedReels.filter(r => r !== reelIndex);
+            reel.classList.remove('locked');
+        } else if (lockedReels.length < 2) {
+            // Select reel
+            lockedReels.push(reelIndex);
+            reel.classList.add('locked');
+        }
+
+        // Check if we have 2 reels selected
+        if (lockedReels.length === 2) {
+            reelSelectionActive = false;
+            
+            // Remove selectable state from all reels
+            reels.forEach(r => {
+                r.classList.remove('selectable');
+            });
+            
+            showMessage("Walzen gesperrt! Drehe jetzt!");
+        }
+    }
+
+    function removeReelLocks() {
+        reels.forEach(reel => {
+            reel.classList.remove('locked', 'selectable');
+        });
+    }
+
+    // Update powerup display
+    function updatePowerupDisplay() {
+        const activeList = document.getElementById('active-powerups-list');
+        if (!activeList) return;
+
+        activeList.innerHTML = '';
+        
+        for (const powerupId in activePowerups) {
+            const powerup = powerups.find(p => p.id === powerupId);
+            const remainingUses = activePowerups[powerupId];
+            
+            if (powerup && remainingUses > 0) {
+                const powerupElement = document.createElement('div');
+                powerupElement.className = 'active-powerup';
+                powerupElement.innerHTML = `
+                    <span class="powerup-icon">${powerup.icon}</span>
+                    <span class="powerup-name">${powerup.name}</span>
+                    <span class="powerup-remaining">${remainingUses}</span>
+                `;
+                activeList.appendChild(powerupElement);
+            }
+        }
+
+        // Update buy button states
+        powerups.forEach(powerup => {
+            const buyBtn = document.querySelector(`[data-powerup="${powerup.id}"] .powerup-buy-btn`);
+            if (buyBtn) {
+                const canAfford = coins >= powerup.cost;
+                const isActive = isPowerupActive(powerup.id);
+                
+                buyBtn.disabled = !canAfford || (isActive && powerup.id === 'symbol_lock');
+                buyBtn.textContent = isActive && powerup.id === 'symbol_lock' ? 'ACTIVE' : 'BUY';
+                buyBtn.className = `powerup-buy-btn ${!canAfford ? 'disabled' : ''} ${isActive && powerup.id === 'symbol_lock' ? 'active' : ''}`;
+            }
+        });
+    }
+
+    // Make purchasePowerup available globally
+    window.purchasePowerup = purchasePowerup;
     function addRequiredStyles() {
         if (!document.getElementById('slot-machine-styles')) {
             const styleElement = document.createElement('style');
@@ -657,6 +893,34 @@
                 0% { opacity: 0.4; transform: scale(0.95); }
                 100% { opacity: 1; transform: scale(1.05); }
             }
+            
+            /* Double money indicator */
+            .double-money-active {
+                position: relative;
+            }
+            
+            .double-money-active::after {
+                content: "2X";
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: gold;
+                color: black;
+                border-radius: 50%;
+                width: 25px;
+                height: 25px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+                animation: double-money-glow 1s infinite alternate;
+            }
+            
+            @keyframes double-money-glow {
+                0% { box-shadow: 0 0 5px gold; }
+                100% { box-shadow: 0 0 15px gold; }
+            }
         `;
             document.head.appendChild(styleElement);
         }
@@ -683,6 +947,11 @@
 
     // Event-Listener hinzufügen
     spinButton.addEventListener('click', spin);
+    
+    // Add click listeners to reels for symbol lock
+    reels.forEach(reel => {
+        reel.addEventListener('click', handleReelClick);
+    });
 
     // Initialisierung
     addRequiredStyles();
