@@ -581,7 +581,7 @@
         const winningSequences = [];
         let totalWinAmount = 0;
 
-        // Jede Reihe auf Gewinnkombinationen prüfen
+        // 1. Horizontale Muster prüfen (bestehende Logik)
         for (let rowIndex = 0; rowIndex < allRowsSymbols.length; rowIndex++) {
             const rowSymbols = allRowsSymbols[rowIndex];
 
@@ -608,6 +608,7 @@
 
                         // Gewinnsequenz für Animation speichern
                         winningSequences.push({
+                            type: 'horizontal',
                             row: rowIndex,
                             startIndex: sequenceStartIndex,
                             length: sequenceLength,
@@ -629,6 +630,109 @@
                     sequenceLength = 1;
                     sequenceStartIndex = i;
                 }
+            }
+        }
+
+        // 2. Vertikale Muster prüfen (drei in einer Spalte)
+        for (let colIndex = 0; colIndex < reels.length; colIndex++) {
+            const columnSymbols = [];
+            for (let row = 0; row < visibleRows; row++) {
+                columnSymbols.push(allRowsSymbols[row][colIndex]);
+            }
+
+            // Prüfen ob alle 3 Symbole in der Spalte identisch sind
+            if (columnSymbols.length >= 3 && 
+                columnSymbols[0].name === columnSymbols[1].name && 
+                columnSymbols[1].name === columnSymbols[2].name) {
+                
+                const symbolValue = getSymbolValue(columnSymbols[0].name);
+                const winAmount = spinCost * symbolValue * 1; // Basis-Multiplikator für 3er-Spalte
+                totalWinAmount += winAmount;
+
+                winningSequences.push({
+                    type: 'vertical',
+                    column: colIndex,
+                    symbol: columnSymbols[0].name,
+                    winAmount: winAmount
+                });
+            }
+        }
+
+        // 3. Diagonale Muster prüfen (X Formation)
+        if (visibleRows >= 3 && reels.length >= 3) {
+            // Haupt-Diagonale (links-oben nach rechts-unten)
+            const mainDiagonal = [
+                allRowsSymbols[0][0], // Oben links
+                allRowsSymbols[1][1], // Mitte
+                allRowsSymbols[2][2]  // Unten rechts
+            ];
+
+            if (mainDiagonal[0].name === mainDiagonal[1].name && 
+                mainDiagonal[1].name === mainDiagonal[2].name) {
+                
+                const symbolValue = getSymbolValue(mainDiagonal[0].name);
+                const winAmount = spinCost * symbolValue * 1.5; // Bonus für Diagonal
+                totalWinAmount += winAmount;
+
+                winningSequences.push({
+                    type: 'diagonal_main',
+                    symbol: mainDiagonal[0].name,
+                    winAmount: winAmount
+                });
+            }
+
+            // Anti-Diagonale (rechts-oben nach links-unten)
+            const antiDiagonal = [
+                allRowsSymbols[0][2], // Oben rechts
+                allRowsSymbols[1][1], // Mitte
+                allRowsSymbols[2][0]  // Unten links
+            ];
+
+            if (antiDiagonal[0].name === antiDiagonal[1].name && 
+                antiDiagonal[1].name === antiDiagonal[2].name) {
+                
+                const symbolValue = getSymbolValue(antiDiagonal[0].name);
+                const winAmount = spinCost * symbolValue * 1.5; // Bonus für Diagonal
+                totalWinAmount += winAmount;
+
+                winningSequences.push({
+                    type: 'diagonal_anti',
+                    symbol: antiDiagonal[0].name,
+                    winAmount: winAmount
+                });
+            }
+
+            // Erweiterte X-Formation (beide Diagonalen gleichzeitig)
+            if (mainDiagonal[0].name === mainDiagonal[1].name && 
+                mainDiagonal[1].name === mainDiagonal[2].name &&
+                antiDiagonal[0].name === antiDiagonal[1].name && 
+                antiDiagonal[1].name === antiDiagonal[2].name &&
+                mainDiagonal[0].name === antiDiagonal[0].name) {
+                
+                // Entferne die einzelnen Diagonal-Gewinne, da wir eine vollständige X-Formation haben
+                const mainDiagIndex = winningSequences.findIndex(seq => seq.type === 'diagonal_main');
+                const antiDiagIndex = winningSequences.findIndex(seq => seq.type === 'diagonal_anti');
+                
+                if (mainDiagIndex !== -1) {
+                    totalWinAmount -= winningSequences[mainDiagIndex].winAmount;
+                    winningSequences.splice(mainDiagIndex, 1);
+                }
+                if (antiDiagIndex !== -1) {
+                    const adjustedIndex = mainDiagIndex < antiDiagIndex ? antiDiagIndex - 1 : antiDiagIndex;
+                    totalWinAmount -= winningSequences[adjustedIndex].winAmount;
+                    winningSequences.splice(adjustedIndex, 1);
+                }
+
+                // X-Formation Bonus
+                const symbolValue = getSymbolValue(mainDiagonal[0].name);
+                const winAmount = spinCost * symbolValue * 3; // Großer Bonus für X-Formation
+                totalWinAmount += winAmount;
+
+                winningSequences.push({
+                    type: 'x_formation',
+                    symbol: mainDiagonal[0].name,
+                    winAmount: winAmount
+                });
             }
         }
 
@@ -691,8 +795,8 @@
 
         const sequence = sequences[currentIndex];
 
-        // Symbole in dieser Gewinnreihe markieren
-        highlightWinningSymbols(sequence.row, sequence.startIndex, sequence.length);
+        // Symbole in dieser Gewinnreihe markieren basierend auf Typ
+        highlightWinningSymbols(sequence);
 
         // Nach einer Verzögerung die Markierung entfernen und zur nächsten Kombination gehen
         setTimeout(() => {
@@ -701,22 +805,90 @@
         }, 1500); // 1,5 Sekunden pro Kombination anzeigen
     }
 
-    // Gewinnkombination hervorheben
-    function highlightWinningSymbols(row, startIndex, length) {
-        for (let i = startIndex; i < startIndex + length; i++) {
-            if (i < reels.length) { // Sicherstellen, dass der Index im gültigen Bereich liegt
-                const reel = reels[i];
-                const symbolElement = reel.querySelector('.symbols-container').children[row];
+    // Gewinnkombination hervorheben basierend auf Typ
+    function highlightWinningSymbols(sequence) {
+        switch (sequence.type) {
+            case 'horizontal':
+                // Horizontale Linie hervorheben (bestehende Logik)
+                for (let i = sequence.startIndex; i < sequence.startIndex + sequence.length; i++) {
+                    if (i < reels.length) {
+                        const reel = reels[i];
+                        const symbolElement = reel.querySelector('.symbols-container').children[sequence.row];
+                        addHighlight(symbolElement);
+                    }
+                }
+                break;
 
-                // Highlight-Element erstellen
-                const highlight = document.createElement('div');
-                highlight.className = 'symbol-highlight';
+            case 'vertical':
+                // Vertikale Spalte hervorheben
+                const reel = reels[sequence.column];
+                for (let row = 0; row < visibleRows; row++) {
+                    const symbolElement = reel.querySelector('.symbols-container').children[row];
+                    addHighlight(symbolElement);
+                }
+                break;
 
-                // Highlight dem Symbol hinzufügen
-                symbolElement.style.position = 'relative';
-                symbolElement.appendChild(highlight);
-            }
+            case 'diagonal_main':
+                // Haupt-Diagonale hervorheben (links-oben nach rechts-unten)
+                const mainDiagonalPositions = [
+                    {reel: 0, row: 0}, // Oben links
+                    {reel: 1, row: 1}, // Mitte
+                    {reel: 2, row: 2}  // Unten rechts
+                ];
+                mainDiagonalPositions.forEach(pos => {
+                    if (pos.reel < reels.length) {
+                        const reel = reels[pos.reel];
+                        const symbolElement = reel.querySelector('.symbols-container').children[pos.row];
+                        addHighlight(symbolElement);
+                    }
+                });
+                break;
+
+            case 'diagonal_anti':
+                // Anti-Diagonale hervorheben (rechts-oben nach links-unten)
+                const antiDiagonalPositions = [
+                    {reel: 2, row: 0}, // Oben rechts
+                    {reel: 1, row: 1}, // Mitte
+                    {reel: 0, row: 2}  // Unten links
+                ];
+                antiDiagonalPositions.forEach(pos => {
+                    if (pos.reel < reels.length) {
+                        const reel = reels[pos.reel];
+                        const symbolElement = reel.querySelector('.symbols-container').children[pos.row];
+                        addHighlight(symbolElement);
+                    }
+                });
+                break;
+
+            case 'x_formation':
+                // Beide Diagonalen hervorheben (X-Formation)
+                const xFormationPositions = [
+                    {reel: 0, row: 0}, // Oben links
+                    {reel: 1, row: 1}, // Mitte
+                    {reel: 2, row: 2}, // Unten rechts
+                    {reel: 2, row: 0}, // Oben rechts
+                    {reel: 0, row: 2}  // Unten links
+                ];
+                xFormationPositions.forEach(pos => {
+                    if (pos.reel < reels.length) {
+                        const reel = reels[pos.reel];
+                        const symbolElement = reel.querySelector('.symbols-container').children[pos.row];
+                        addHighlight(symbolElement, 'x-formation');
+                    }
+                });
+                break;
         }
+    }
+
+    // Hilfsfunktion zum Hinzufügen von Highlights
+    function addHighlight(symbolElement, specialClass = '') {
+        // Highlight-Element erstellen
+        const highlight = document.createElement('div');
+        highlight.className = `symbol-highlight ${specialClass}`;
+
+        // Highlight dem Symbol hinzufügen
+        symbolElement.style.position = 'relative';
+        symbolElement.appendChild(highlight);
     }
 
     // Alle Hervorhebungen entfernen
@@ -889,9 +1061,29 @@
                 z-index: 10;
             }
             
+            /* Spezieller Stil für X-Formation */
+            .symbol-highlight.x-formation {
+                border: 4px solid #ff4444;
+                box-shadow: 0 0 15px #ff4444, 0 0 30px #ff4444;
+                animation: pulse-x 0.3s infinite alternate;
+            }
+            
             @keyframes pulse {
                 0% { opacity: 0.4; transform: scale(0.95); }
                 100% { opacity: 1; transform: scale(1.05); }
+            }
+            
+            @keyframes pulse-x {
+                0% { 
+                    opacity: 0.6; 
+                    transform: scale(0.9); 
+                    box-shadow: 0 0 15px #ff4444, 0 0 30px #ff4444;
+                }
+                100% { 
+                    opacity: 1; 
+                    transform: scale(1.1); 
+                    box-shadow: 0 0 25px #ff4444, 0 0 50px #ff4444;
+                }
             }
             
             /* Double money indicator */
