@@ -533,7 +533,29 @@
 
     // Nachricht anzeigen
     function showMessage(message) {
-        alert(message);
+        // Prüfen ob bereits ein Message-Element existiert
+        let messageElement = document.getElementById('general-message');
+
+        // Falls nicht, erstellen wir ein neues
+        if (!messageElement) {
+            messageElement = document.createElement('div');
+            messageElement.id = 'general-message';
+            messageElement.className = 'win-message';
+            document.querySelector('.container').prepend(messageElement);
+        }
+
+        // Nachricht setzen
+        messageElement.textContent = message;
+
+        // Animation für das Einblenden
+        messageElement.classList.remove('show');
+        void messageElement.offsetHeight; // Force reflow
+        messageElement.classList.add('show');
+
+        // Nach 3 Sekunden ausblenden
+        setTimeout(() => {
+            messageElement.classList.remove('show');
+        }, 3000);
     }
 
     // Coin-Anzeige aktualisieren
