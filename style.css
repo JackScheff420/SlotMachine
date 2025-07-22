@@ -666,3 +666,261 @@ h1 {
 
 /* Grün für Watermelon */
 
+/* =========================== */
+/* RESPONSIVE DESIGN - MOBILE */
+/* =========================== */
+
+/* Mobile and Tablet Breakpoints */
+@media screen and (max-width: 768px) {
+    /* Disable horizontal overflow and make body scrollable on mobile */
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: none;
+    }
+
+    .container {
+        padding: 10px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Stack layout vertically instead of side-by-side */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        width: 100%;
+        max-width: 400px;
+        position: static;
+    }
+
+    /* Reset absolute positioning for mobile */
+    .coin-box {
+        position: static;
+        left: auto;
+        top: auto;
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: 20px;
+        order: 1; /* Show coins first */
+    }
+
+    .slot-machine {
+        order: 2; /* Show slot machine second */
+        width: 100%;
+        max-width: 350px;
+        padding: 15px;
+    }
+
+    .powerup-panel {
+        position: static;
+        right: auto;
+        top: auto;
+        width: 100%;
+        max-width: 350px;
+        max-height: none;
+        overflow-y: visible;
+        order: 3; /* Show powerups last */
+    }
+
+    /* Adjust slot machine for mobile */
+    .slot-window {
+        padding: 8px;
+    }
+
+    .reels-container {
+        gap: 3px;
+    }
+
+    .reel {
+        width: 60px; /* Smaller reels for mobile */
+        height: 180px; /* 3 symbols * 60px */
+    }
+
+    .symbol {
+        height: 60px; /* Match smaller reel height */
+        font-size: 32px; /* Smaller symbols */
+    }
+
+    /* Adjust button for mobile - make it touch-friendly */
+    #spin-button {
+        padding: 12px 30px;
+        font-size: 18px;
+        min-height: 50px; /* Ensure minimum touch target size */
+        width: 100%;
+        max-width: 200px;
+    }
+
+    /* Adjust powerup items for mobile */
+    .powerup-item {
+        padding: 12px;
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .powerup-icon {
+        font-size: 28px;
+    }
+
+    .powerup-info {
+        text-align: center;
+    }
+
+    .powerup-buy-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        min-height: 44px; /* Touch-friendly button size */
+        width: 100%;
+        max-width: 120px;
+    }
+
+    /* Adjust typography for mobile */
+    h1 {
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+
+    .coin-box h2,
+    .powerup-panel h2 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .coin-count {
+        font-size: 24px;
+    }
+
+    .powerup-name {
+        font-size: 14px;
+    }
+
+    .powerup-cost {
+        font-size: 12px;
+    }
+
+    .powerup-desc {
+        font-size: 11px;
+    }
+
+    /* Adjust spacing */
+    .coin-display {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .spin-cost {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    /* Make sure win messages are visible on mobile */
+    .win-message {
+        width: 90%;
+        max-width: 300px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}
+
+/* Extra small mobile devices */
+@media screen and (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+
+    .game-container {
+        max-width: 100%;
+        gap: 15px;
+    }
+
+    .slot-machine {
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .reel {
+        width: 50px;
+        height: 150px; /* 3 symbols * 50px */
+    }
+
+    .symbol {
+        height: 50px;
+        font-size: 28px;
+    }
+
+    .coin-box,
+    .powerup-panel {
+        max-width: 100%;
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .coin-count {
+        font-size: 20px;
+    }
+
+    #spin-button {
+        font-size: 16px;
+        padding: 10px 25px;
+    }
+
+    .powerup-item {
+        padding: 10px;
+    }
+
+    .powerup-icon {
+        font-size: 24px;
+    }
+}
+
+/* Landscape mobile orientation */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .game-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 15px;
+        max-width: 100%;
+    }
+
+    .coin-box {
+        order: 1;
+        width: 200px;
+        margin-bottom: 0;
+    }
+
+    .slot-machine {
+        order: 2;
+        width: 300px;
+    }
+
+    .powerup-panel {
+        order: 3;
+        width: 250px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .reel {
+        width: 45px;
+        height: 135px;
+    }
+
+    .symbol {
+        height: 45px;
+        font-size: 24px;
+    }
+}
+

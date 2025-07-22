@@ -35,7 +35,6 @@
     const coinCountElement = document.getElementById('coin-count');
 
     // Konstanten für die Animation
-    const symbolHeight = 100; // Höhe eines Symbols in Pixel
     const visibleRows = 3; // Anzahl der sichtbaren Reihen
     const spinSymbols = 20; // Anzahl der Symbole für die Drehung
     const spinCost = 1; // Kosten für einen Spin in Coins
@@ -362,6 +361,18 @@
         }
     }
 
+    // Dynamically get symbol height based on CSS
+    function getSymbolHeight() {
+        // Get the first symbol element to measure its actual height
+        const firstReel = reels[0];
+        const firstSymbol = firstReel.querySelector('.symbol');
+        if (firstSymbol) {
+            return firstSymbol.offsetHeight;
+        }
+        // Fallback to 100 if no symbol found
+        return 100;
+    }
+
     // Aktualisiert die Anzeige einer einzelnen Walze
     function updateReelDisplay(reelIndex) {
         const reel = reels[reelIndex];
@@ -441,6 +452,7 @@
             });
 
             // Berechnen der Positionen
+            const symbolHeight = getSymbolHeight(); // Get current symbol height dynamically
             const totalHeight = symbolsContainer.childElementCount * symbolHeight;
             const startPosition = -(totalHeight - existingSymbols.length * symbolHeight);
 
