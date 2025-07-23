@@ -189,7 +189,7 @@
             if (isAutoSpinActive) {
                 autoSpinTimeoutId = setTimeout(() => {
                     triggerAutoSpin();
-                }, 1500); // 1.5 second delay between spins
+                }, 500); // Reduced delay for more responsive auto spin
             }
         }).catch((error) => {
             console.error("Auto spin error:", error);
@@ -635,11 +635,13 @@
 
         // NACH dem Spin den Button-Status aktualisieren
         updateCoinDisplay(true);
-        updateSpinButtonState();
         updateAutoSpinButtonState();
 
         // Gewinnkombinationen prüfen
         await checkWinningCombinations();
+        
+        // Only reactivate buttons after all animations and win sequences are complete
+        updateSpinButtonState();
         
         return Promise.resolve();
     }
@@ -889,8 +891,7 @@
             // Sequentiell alle Gewinnkombinationen animieren
             animateWinningSequences(winningSequences, 0, totalWinAmount, resolve);
         } else {
-            // Sofort nach dem Spin den Button wieder aktivieren, wenn es keine Gewinne gibt
-            updateSpinButtonState();
+            // No wins, resolve immediately
             resolve();
         }
         });
@@ -925,11 +926,10 @@
             // Nachricht mit Gesamtgewinn anzeigen (ohne alert)
             showWinMessage(`Glückwunsch! Du hast ${totalWinAmount} Coins gewonnen!`);
 
-            // Button wieder aktivieren nach kurzer Verzögerung
+            // Wait for the full win message display duration before resolving
             setTimeout(() => {
-                updateSpinButtonState();
                 if (resolve) resolve(); // Call the promise resolve callback
-            }, 2000); // 2 Sekunden warten, bis die letzte Meldung ausgeblendet ist
+            }, 3000); // Wait for the full 3 seconds of win message display
             return;
         }
 
