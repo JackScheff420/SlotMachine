@@ -926,10 +926,8 @@
             // Nachricht mit Gesamtgewinn anzeigen (ohne alert)
             showWinMessage(`Glückwunsch! Du hast ${totalWinAmount} Coins gewonnen!`);
 
-            // Wait for the full win message display duration before resolving
-            setTimeout(() => {
-                if (resolve) resolve(); // Call the promise resolve callback
-            }, 3000); // Wait for the full 3 seconds of win message display
+            // Resolve immediately when win message appears (button should be unlocked now)
+            if (resolve) resolve(); // Call the promise resolve callback
             return;
         }
 
