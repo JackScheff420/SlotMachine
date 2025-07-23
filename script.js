@@ -32,6 +32,7 @@
         document.getElementById('reel5')
     ];
     const spinButton = document.getElementById('spin-button');
+    const autoSpinButton = document.getElementById('auto-spin-button');
     const coinCountElement = document.getElementById('coin-count');
 
     // Konstanten für die Animation
@@ -122,13 +123,101 @@
     let hasFreeSpin = checkForFreeSpin();
     let activePowerups = loadPowerupsFromStorage();
     let lockedReels = []; // For symbol lock powerup
+    
+    // Auto Spin state management
+    let isAutoSpinActive = false;
+    let autoSpinTimeoutId = null;
 
     updateSpinButtonState();
     updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
     updatePowerupDisplay();
+    updateAutoSpinButtonState();
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
+
+    // Auto Spin Management Functions
+    function toggleAutoSpin() {
+        if (isAutoSpinActive) {
+            stopAutoSpin();
+        } else {
+            startAutoSpin();
+        }
+    }
+
+    function startAutoSpin() {
+        // Check if we can start auto spin
+        if (coins < spinCost && !hasFreeSpin) {
+            showMessage("Nicht genug Coins für Auto Spin!");
+            return;
+        }
+
+        isAutoSpinActive = true;
+        updateAutoSpinButtonState();
+        showMessage("Auto Spin aktiviert!");
+        
+        // Start the first spin immediately
+        triggerAutoSpin();
+    }
+
+    function stopAutoSpin() {
+        isAutoSpinActive = false;
+        
+        // Clear any pending auto spin timeout
+        if (autoSpinTimeoutId) {
+            clearTimeout(autoSpinTimeoutId);
+            autoSpinTimeoutId = null;
+        }
+        
+        updateAutoSpinButtonState();
+        showMessage("Auto Spin gestoppt!");
+    }
+
+    function triggerAutoSpin() {
+        if (!isAutoSpinActive) return;
+        
+        // Check if we still have coins or free spin
+        if (coins < spinCost && !hasFreeSpin) {
+            stopAutoSpin();
+            showMessage("Auto Spin gestoppt - nicht genug Coins!");
+            return;
+        }
+        
+        // Trigger a spin
+        spin().then(() => {
+            // Schedule next auto spin if still active
+            if (isAutoSpinActive) {
+                autoSpinTimeoutId = setTimeout(() => {
+                    triggerAutoSpin();
+                }, 1500); // 1.5 second delay between spins
+            }
+        }).catch((error) => {
+            console.error("Auto spin error:", error);
+            stopAutoSpin();
+        });
+    }
+
+    function updateAutoSpinButtonState() {
+        if (isAutoSpinActive) {
+            autoSpinButton.classList.add('active');
+            autoSpinButton.classList.remove('disabled');
+            autoSpinButton.textContent = 'STOP AUTO';
+            autoSpinButton.disabled = false;
+        } else {
+            autoSpinButton.classList.remove('active');
+            
+            // Disable auto spin if not enough coins and no free spin
+            if (coins < spinCost && !hasFreeSpin) {
+                autoSpinButton.classList.add('disabled');
+                autoSpinButton.disabled = true;
+                autoSpinButton.textContent = 'AUTO SPIN';
+            } else {
+                autoSpinButton.classList.remove('disabled');
+                autoSpinButton.disabled = false;
+                autoSpinButton.textContent = 'AUTO SPIN';
+            }
+        }
+    }
 
     // Lädt Coins aus dem localStorage oder setzt auf Standardwert
     function loadCoinsFromStorage() {
@@ -486,21 +575,30 @@
 
     // Alle Walzen drehen
     async function spin() {
-        if (spinButton.disabled) return;
+        if (spinButton.disabled) return Promise.resolve();
 
         const useFreeSpin = hasFreeSpin;
 
         // Prüfen, ob genügend Coins vorhanden sind oder Free Spin verfügbar
         if (!useFreeSpin && coins < spinCost) {
             showMessage("Nicht genug Coins! Bitte füge mehr Coins hinzu.");
-            return;
+            // Stop auto spin if running
+            if (isAutoSpinActive) {
+                stopAutoSpin();
+            }
+            return Promise.resolve();
         }
 
         // Check for symbol lock powerup before spin
         if (isPowerupActive('symbol_lock') && lockedReels.length === 0) {
             // Allow player to select reels to lock
             showReelSelection();
-            return; // Wait for reel selection
+            // Stop auto spin if running since we need manual interaction
+            if (isAutoSpinActive) {
+                stopAutoSpin();
+                showMessage("Auto Spin gestoppt - Symbol Lock Auswahl erforderlich!");
+            }
+            return Promise.resolve(); // Wait for reel selection
         }
 
         // Coins abziehen oder Free Spin markieren
@@ -538,9 +636,12 @@
         // NACH dem Spin den Button-Status aktualisieren
         updateCoinDisplay(true);
         updateSpinButtonState();
+        updateAutoSpinButtonState();
 
         // Gewinnkombinationen prüfen
-        checkWinningCombinations();
+        await checkWinningCombinations();
+        
+        return Promise.resolve();
     }
 
     // Nachricht anzeigen
@@ -596,11 +697,13 @@
 
         // Auch den Button-Status aktualisieren
         updateSpinButtonState();
+        updateAutoSpinButtonState();
         updatePowerupDisplay();
     }
 
     // Gewinnkombinationen prüfen
     function checkWinningCombinations() {
+        return new Promise((resolve) => {
         // Alle Walzensymbole erfassen (für alle sichtbaren Reihen)
         const allRowsSymbols = [];
 
@@ -784,11 +887,13 @@
             updateCoinDisplay(true);
 
             // Sequentiell alle Gewinnkombinationen animieren
-            animateWinningSequences(winningSequences, 0, totalWinAmount);
+            animateWinningSequences(winningSequences, 0, totalWinAmount, resolve);
         } else {
             // Sofort nach dem Spin den Button wieder aktivieren, wenn es keine Gewinne gibt
             updateSpinButtonState();
+            resolve();
         }
+        });
     }
 
     // Symbol-Werte festlegen (von niedrigsten zu höchsten)
@@ -814,7 +919,7 @@
     }
 
     // Gewinnkombinationen nacheinander animieren
-    function animateWinningSequences(sequences, currentIndex, totalWinAmount) {
+    function animateWinningSequences(sequences, currentIndex, totalWinAmount, resolve) {
         // Alle Animationen abgeschlossen
         if (currentIndex >= sequences.length) {
             // Nachricht mit Gesamtgewinn anzeigen (ohne alert)
@@ -823,6 +928,7 @@
             // Button wieder aktivieren nach kurzer Verzögerung
             setTimeout(() => {
                 updateSpinButtonState();
+                if (resolve) resolve(); // Call the promise resolve callback
             }, 2000); // 2 Sekunden warten, bis die letzte Meldung ausgeblendet ist
             return;
         }
@@ -835,7 +941,7 @@
         // Nach einer Verzögerung die Markierung entfernen und zur nächsten Kombination gehen
         setTimeout(() => {
             removeHighlights();
-            animateWinningSequences(sequences, currentIndex + 1, totalWinAmount);
+            animateWinningSequences(sequences, currentIndex + 1, totalWinAmount, resolve);
         }, 1500); // 1,5 Sekunden pro Kombination anzeigen
     }
 
@@ -1162,6 +1268,7 @@
             if (newHasFreeSpin !== hasFreeSpin) {
                 hasFreeSpin = newHasFreeSpin;
                 updateSpinButtonState();
+                updateAutoSpinButtonState();
             } else {
                 // Nur den Countdown aktualisieren
                 if (!hasFreeSpin) {
@@ -1173,6 +1280,7 @@
 
     // Event-Listener hinzufügen
     spinButton.addEventListener('click', spin);
+    autoSpinButton.addEventListener('click', toggleAutoSpin);
     
     // Add click listeners to reels for symbol lock
     reels.forEach(reel => {
