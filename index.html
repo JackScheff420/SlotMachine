@@ -76,6 +76,16 @@
             </div>
             <div class="controls">
                 <div class="spin-cost">1 Coin pro Spin</div>
+                <div class="bet-multiplier-controls">
+                    <div class="bet-multiplier-label">Einsatz (Hebel):</div>
+                    <div class="bet-multiplier-buttons">
+                        <button class="bet-multiplier-btn active" data-multiplier="1" onclick="setBetMultiplier(1)">1x</button>
+                        <button class="bet-multiplier-btn" data-multiplier="2" onclick="setBetMultiplier(2)">2x</button>
+                        <button class="bet-multiplier-btn" data-multiplier="5" onclick="setBetMultiplier(5)">5x</button>
+                        <button class="bet-multiplier-btn" data-multiplier="10" onclick="setBetMultiplier(10)">10x</button>
+                        <button class="bet-multiplier-btn" data-multiplier="25" onclick="setBetMultiplier(25)">25x</button>
+                    </div>
+                </div>
                 <div class="button-group">
                     <button id="spin-button">SPIN</button>
                     <button id="auto-spin-button">AUTO SPIN</button>
