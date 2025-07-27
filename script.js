@@ -38,7 +38,7 @@
     // Konstanten für die Animation
     const visibleRows = 3; // Anzahl der sichtbaren Reihen
     const spinSymbols = 20; // Anzahl der Symbole für die Drehung
-    const spinCost = 1; // Kosten für einen Spin in Coins
+    const baseCost = 1; // Basis-Kosten für einen Spin in Coins
 
     // LocalStorage Keys
     const COINS_KEY = 'slotMachineCoins';
@@ -123,6 +123,7 @@
     let hasFreeSpin = checkForFreeSpin();
     let activePowerups = loadPowerupsFromStorage();
     let lockedReels = []; // For symbol lock powerup
+    let betMultiplier = 1; // Default bet multiplier
     
     // Auto Spin state management
     let isAutoSpinActive = false;
@@ -132,6 +133,7 @@
     updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
     updatePowerupDisplay();
     updateAutoSpinButtonState();
+    updateBetDisplay(); // Initialize bet display
 
     // Aktuelle Symbole speichern für jede Walze
     let currentReelSymbols = [];
@@ -147,7 +149,8 @@
 
     function startAutoSpin() {
         // Check if we can start auto spin
-        if (coins < spinCost && !hasFreeSpin) {
+        const currentSpinCost = getCurrentSpinCost();
+        if (coins < currentSpinCost && !hasFreeSpin) {
             showMessage("Nicht genug Coins für Auto Spin!");
             return;
         }
@@ -177,7 +180,8 @@
         if (!isAutoSpinActive) return;
         
         // Check if we still have coins or free spin
-        if (coins < spinCost && !hasFreeSpin) {
+        const currentSpinCost = getCurrentSpinCost();
+        if (coins < currentSpinCost && !hasFreeSpin) {
             stopAutoSpin();
             showMessage("Auto Spin gestoppt - nicht genug Coins!");
             return;
@@ -207,7 +211,8 @@
             autoSpinButton.classList.remove('active');
             
             // Disable auto spin if not enough coins and no free spin
-            if (coins < spinCost && !hasFreeSpin) {
+            const currentSpinCost = getCurrentSpinCost();
+            if (coins < currentSpinCost && !hasFreeSpin) {
                 autoSpinButton.classList.add('disabled');
                 autoSpinButton.disabled = true;
                 autoSpinButton.textContent = 'AUTO SPIN';
@@ -228,6 +233,38 @@
     // Speichert Coins im localStorage
     function saveCoinsToStorage() {
         localStorage.setItem(COINS_KEY, coins.toString());
+    }
+
+    // Get current spin cost based on bet multiplier
+    function getCurrentSpinCost() {
+        return baseCost * betMultiplier;
+    }
+
+    // Bet multiplier functions
+    function setBetMultiplier(multiplier) {
+        betMultiplier = multiplier;
+        updateSpinButtonState();
+        updateAutoSpinButtonState();
+        updateBetDisplay();
+    }
+
+    function updateBetDisplay() {
+        const spinCostElement = document.querySelector('.spin-cost');
+        if (spinCostElement) {
+            const currentCost = getCurrentSpinCost();
+            if (betMultiplier === 1) {
+                spinCostElement.textContent = `${currentCost} Coin pro Spin`;
+            } else {
+                spinCostElement.textContent = `${currentCost} Coins pro Spin (${betMultiplier}x)`;
+            }
+        }
+        
+        // Update bet multiplier buttons
+        document.querySelectorAll('.bet-multiplier-btn').forEach(btn => {
+            const multiplier = parseInt(btn.dataset.multiplier);
+            btn.classList.toggle('active', multiplier === betMultiplier);
+            btn.disabled = coins < (baseCost * multiplier) && !hasFreeSpin;
+        });
     }
 
     // Lädt Powerups aus dem localStorage
@@ -315,6 +352,8 @@
 
     // Aktualisiert den Status des Spin-Buttons basierend auf Free Spin und Coins
     function updateSpinButtonState() {
+        const currentSpinCost = getCurrentSpinCost();
+        
         // Free Spin verfügbar - Button entsprechend anzeigen
         if (hasFreeSpin) {
             spinButton.classList.add('free-spin');
@@ -330,7 +369,7 @@
             document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.remove('error');
         }
         // Kein Free Spin, aber genug Coins
-        else if (coins >= spinCost) {
+        else if (coins >= currentSpinCost) {
             spinButton.classList.remove('free-spin', 'error', 'disabled');
             spinButton.textContent = "SPIN";
             spinButton.disabled = false;
@@ -578,9 +617,10 @@
         if (spinButton.disabled) return Promise.resolve();
 
         const useFreeSpin = hasFreeSpin;
+        const currentSpinCost = getCurrentSpinCost();
 
         // Prüfen, ob genügend Coins vorhanden sind oder Free Spin verfügbar
-        if (!useFreeSpin && coins < spinCost) {
+        if (!useFreeSpin && coins < currentSpinCost) {
             showMessage("Nicht genug Coins! Bitte füge mehr Coins hinzu.");
             // Stop auto spin if running
             if (isAutoSpinActive) {
@@ -603,7 +643,7 @@
 
         // Coins abziehen oder Free Spin markieren
         if (!useFreeSpin) {
-            coins -= spinCost;
+            coins -= currentSpinCost;
         } else {
             markFreeSpinUsed();
         }
@@ -676,6 +716,7 @@
     // Coin-Anzeige aktualisieren
     // showError bestimmt, ob der Error-Status angezeigt werden soll
     function updateCoinDisplay(showError) {
+        const currentSpinCost = getCurrentSpinCost();
         coinCountElement.textContent = coins;
 
         // Add double money indicator if active
@@ -689,7 +730,7 @@
         if (hasFreeSpin) {
             // Keine Error-Anzeige wenn Free Spin verfügbar ist
             document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.remove('error');
-        } else if (coins < spinCost && showError) {
+        } else if (coins < currentSpinCost && showError) {
             // Error-Status für Spin-Kosten-Text wenn zu wenig Coins
             document.querySelector('.spin-cost') && document.querySelector('.spin-cost').classList.add('error');
         } else {
@@ -701,6 +742,7 @@
         updateSpinButtonState();
         updateAutoSpinButtonState();
         updatePowerupDisplay();
+        updateBetDisplay(); // Update bet display when coins change
     }
 
     // Gewinnkombinationen prüfen
@@ -741,8 +783,8 @@
                         // Basiswert des Symbols bestimmen
                         const symbolValue = getSymbolValue(currentSymbol);
 
-                        // Gewinn berechnen
-                        const winAmount = spinCost * symbolValue * countMultiplier;
+                        // Gewinn berechnen (inkl. Bet Multiplier)
+                        const winAmount = getCurrentSpinCost() * symbolValue * countMultiplier;
                         totalWinAmount += winAmount;
 
                         // Gewinnsequenz für Animation speichern
@@ -785,7 +827,7 @@
                 columnSymbols[1].name === columnSymbols[2].name) {
                 
                 const symbolValue = getSymbolValue(columnSymbols[0].name);
-                const winAmount = spinCost * symbolValue * 1; // Basis-Multiplikator für 3er-Spalte
+                const winAmount = getCurrentSpinCost() * symbolValue * 1; // Basis-Multiplikator für 3er-Spalte
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -810,7 +852,7 @@
                 mainDiagonal[1].name === mainDiagonal[2].name) {
                 
                 const symbolValue = getSymbolValue(mainDiagonal[0].name);
-                const winAmount = spinCost * symbolValue * 1.5; // Bonus für Diagonal
+                const winAmount = getCurrentSpinCost() * symbolValue * 1.5; // Bonus für Diagonal
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -831,7 +873,7 @@
                 antiDiagonal[1].name === antiDiagonal[2].name) {
                 
                 const symbolValue = getSymbolValue(antiDiagonal[0].name);
-                const winAmount = spinCost * symbolValue * 1.5; // Bonus für Diagonal
+                const winAmount = getCurrentSpinCost() * symbolValue * 1.5; // Bonus für Diagonal
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -864,7 +906,7 @@
 
                 // X-Formation Bonus
                 const symbolValue = getSymbolValue(mainDiagonal[0].name);
-                const winAmount = spinCost * symbolValue * 3; // Großer Bonus für X-Formation
+                const winAmount = getCurrentSpinCost() * symbolValue * 3; // Großer Bonus für X-Formation
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -1157,6 +1199,8 @@
 
     // Make purchasePowerup available globally
     window.purchasePowerup = purchasePowerup;
+    // Make setBetMultiplier available globally
+    window.setBetMultiplier = setBetMultiplier;
     function addRequiredStyles() {
         if (!document.getElementById('slot-machine-styles')) {
             const styleElement = document.createElement('style');
