@@ -3,36 +3,19 @@
  */
 
 import { StorageManager } from '../core/StorageManager.js';
+import { progressionConfig, bettingConfig, gameplayConfig } from '../config/gameConfig.js';
 
 export class ProgressionManager {
     constructor(gameState) {
         this.gameState = gameState;
         this.unlocks = StorageManager.loadUnlocks();
         
-        // Define unlock costs and requirements
+        // Define unlock costs and requirements from config
         this.unlockConfig = {
-            reels: {
-                1: { cost: 0, unlocked: true }, // First reel is always unlocked
-                2: { cost: 200, unlocked: false }, // 1x3 → 3x3
-                3: { cost: 500, unlocked: false }, // 3x3 → 5x3  
-                4: { cost: 1000, unlocked: false }, // 5x3 → 7x3 
-                5: { cost: 2000, unlocked: false } // 7x3 → 9x3 (we have 5 reels max currently)
-            },
-            betMultipliers: {
-                1: { cost: 0, unlocked: true }, // Always available
-                2: { cost: 50, unlocked: false },
-                5: { cost: 100, unlocked: false },
-                10: { cost: 200, unlocked: false },
-                25: { cost: 500, unlocked: false }
-            },
-            features: {
-                autoSpin: { cost: 100, unlocked: false }
-            },
-            powerups: {
-                double_money: { cost: 25, unlocked: false },
-                lucky_sevens: { cost: 50, unlocked: false },
-                symbol_lock: { cost: 75, unlocked: false }
-            }
+            reels: { ...progressionConfig.reels },
+            betMultipliers: { ...bettingConfig.multipliers },
+            features: { ...progressionConfig.features },
+            powerups: { ...progressionConfig.powerupUnlocks }
         };
 
         // Apply saved unlocks
@@ -102,7 +85,7 @@ export class ProgressionManager {
     // Get current maximum unlocked reel count
     getMaxUnlockedReels() {
         let maxReels = 1; // Start with 1 reel minimum
-        for (let reelCount = 2; reelCount <= 5; reelCount++) {
+        for (let reelCount = 2; reelCount <= gameplayConfig.maxReels; reelCount++) {
             if (this.isReelCountUnlocked(reelCount)) {
                 maxReels = reelCount;
             }
@@ -237,7 +220,7 @@ export class ProgressionManager {
         // Remove existing unlock buttons
         document.querySelectorAll('.reel-unlock-btn').forEach(btn => btn.remove());
         
-        if (nextReelCount <= 5 && !this.isReelCountUnlocked(nextReelCount)) {
+        if (nextReelCount <= gameplayConfig.maxReels && !this.isReelCountUnlocked(nextReelCount)) {
             const cost = this.getUnlockCost('reels', nextReelCount);
             const reelToUnlock = document.querySelector(`.reel:nth-child(${nextReelCount})`);
             

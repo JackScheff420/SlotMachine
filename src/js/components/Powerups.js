@@ -3,34 +3,10 @@
  */
 
 import { StorageManager } from '../core/StorageManager.js';
+import { powerupConfig } from '../config/gameConfig.js';
 
-// Powerup definitions
-export const powerups = [
-    {
-        id: 'double_money',
-        name: 'Double Money',
-        description: 'Double winnings for 3 spins',
-        cost: 5,
-        duration: 3,
-        icon: '💰'
-    },
-    {
-        id: 'lucky_sevens',
-        name: 'Lucky 7s',
-        description: 'Higher chance for rare symbols for 5 spins',
-        cost: 10,
-        duration: 5,
-        icon: '🍀'
-    },
-    {
-        id: 'symbol_lock',
-        name: 'Symbol Lock',
-        description: 'Lock 2 reels on next spin',
-        cost: 15,
-        duration: 1,
-        icon: '🔒'
-    }
-];
+// Powerup definitions from config
+export const powerups = powerupConfig.definitions;
 
 export class PowerupManager {
     constructor(gameState) {

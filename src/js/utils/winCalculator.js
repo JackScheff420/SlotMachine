@@ -4,11 +4,12 @@
 
 import { getSymbolValue } from './symbols.js';
 import { addHighlight, removeHighlights } from './animations.js';
+import { winConfig, gameplayConfig } from '../config/gameConfig.js';
 
 export class WinCalculator {
     constructor(gameState) {
         this.gameState = gameState;
-        this.visibleRows = 3; // Anzahl der sichtbaren Reihen
+        this.visibleRows = gameplayConfig.visibleRows; // Anzahl der sichtbaren Reihen
     }
 
     // Gewinnkombinationen prüfen
@@ -49,7 +50,7 @@ export class WinCalculator {
             if (winningSequences.length > 0) {
                 // Apply double money powerup if active
                 if (this.gameState.powerupManager.isPowerupActive('double_money')) {
-                    totalWinAmount *= 2;
+                    totalWinAmount *= winConfig.doubleMoney;
                 }
                 
                 // Coins hinzufügen
@@ -82,9 +83,9 @@ export class WinCalculator {
                 // Am Ende oder wenn ein neues Symbol beginnt
                 if (i === rowSymbols.length || (rowSymbols[i].name !== currentSymbol && currentSymbol !== null)) {
                     // Wenn wir eine Sequenz von mindestens 3 identischen Symbolen haben
-                    if (sequenceLength >= 3) {
+                    if (sequenceLength >= gameplayConfig.minimumWinLength) {
                         // Multiplikator basierend auf Anzahl der Symbole festlegen
-                        const countMultiplier = sequenceLength - 2; // 3 Symbole = 1x, 4 Symbole = 2x, 5 Symbole = 3x
+                        const countMultiplier = winConfig.horizontalCountMultiplier[sequenceLength] || (sequenceLength - 2);
 
                         // Basiswert des Symbols bestimmen
                         const symbolValue = getSymbolValue(currentSymbol);
@@ -140,7 +141,7 @@ export class WinCalculator {
                 columnSymbols[1].name === columnSymbols[2].name) {
                 
                 const symbolValue = getSymbolValue(columnSymbols[0].name);
-                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * 1; // Basis-Multiplikator für 3er-Spalte
+                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * winConfig.verticalMultiplier; // Basis-Multiplikator für 3er-Spalte
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -172,7 +173,7 @@ export class WinCalculator {
                 mainDiagonal[1].name === mainDiagonal[2].name) {
                 
                 const symbolValue = getSymbolValue(mainDiagonal[0].name);
-                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * 1.5; // Bonus für Diagonal
+                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * winConfig.diagonalBonus; // Bonus für Diagonal
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -193,7 +194,7 @@ export class WinCalculator {
                 antiDiagonal[1].name === antiDiagonal[2].name) {
                 
                 const symbolValue = getSymbolValue(antiDiagonal[0].name);
-                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * 1.5; // Bonus für Diagonal
+                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * winConfig.diagonalBonus; // Bonus für Diagonal
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -226,7 +227,7 @@ export class WinCalculator {
 
                 // X-Formation Bonus
                 const symbolValue = getSymbolValue(mainDiagonal[0].name);
-                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * 3; // Großer Bonus für X-Formation
+                const winAmount = this.gameState.betManager.getCurrentSpinCost() * symbolValue * winConfig.xFormationBonus; // Großer Bonus für X-Formation
                 totalWinAmount += winAmount;
 
                 winningSequences.push({
@@ -261,7 +262,7 @@ export class WinCalculator {
         setTimeout(() => {
             removeHighlights();
             this.animateWinningSequences(sequences, currentIndex + 1, totalWinAmount, resolve);
-        }, 1500); // 1,5 Sekunden pro Kombination anzeigen
+        }, gameplayConfig.winAnimationDuration); // Konfigurierbare Zeit pro Kombination anzeigen
     }
 
     // Gewinnkombination hervorheben basierend auf Typ

@@ -2,10 +2,12 @@
  * Manages betting and multiplier system
  */
 
+import { spinConfig } from '../config/gameConfig.js';
+
 export class BetManager {
     constructor(gameState) {
         this.gameState = gameState;
-        this.baseCost = 1; // Basis-Kosten für einen Spin in Coins
+        this.baseCost = spinConfig.baseCost; // Basis-Kosten für einen Spin in Coins
         this.betMultiplier = 1; // Default bet multiplier
     }
 
