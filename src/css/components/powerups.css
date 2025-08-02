@@ -11,6 +11,8 @@
     box-shadow: var(--shadow-base);
     text-align: center;
     width: 180px;
+    height: fit-content;
+    max-height: 200px;
 }
 
 .coin-display {
@@ -67,6 +69,7 @@
     box-shadow: var(--shadow-base);
     text-align: center;
     width: 300px;
+    height: fit-content;
     max-height: 600px;
     overflow-y: auto;
 }
