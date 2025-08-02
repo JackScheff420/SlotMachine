@@ -2,7 +2,7 @@
 
 .coin-box {
     position: absolute;
-    left: -210px;
+    left: -250px;
     top: 0;
     background-color: var(--surface-dark);
     border: 8px solid var(--border-color);
@@ -10,7 +10,7 @@
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-base);
     text-align: center;
-    width: 180px;
+    width: 220px;
     height: fit-content;
     max-height: 200px;
 }
@@ -60,7 +60,7 @@
 
 .powerup-panel {
     position: absolute;
-    right: -320px;
+    right: -250px;
     top: 0;
     background-color: var(--surface-dark);
     border: 8px solid var(--border-color);
@@ -68,7 +68,7 @@
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-base);
     text-align: center;
-    width: 300px;
+    width: 220px;
     height: fit-content;
     max-height: 600px;
     overflow-y: auto;
