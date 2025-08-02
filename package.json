@@ -1,0 +1,27 @@
+{
+  "name": "slot-machine-game",
+  "version": "1.0.0",
+  "description": "A professional slot machine game with daily free spins and powerup system",
+  "main": "src/js/main.js",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "dev": "python3 -m http.server 8080",
+    "build": "echo 'Build process - to be implemented'",
+    "test": "echo 'Tests - to be implemented'"
+  },
+  "keywords": [
+    "slot-machine",
+    "game",
+    "javascript",
+    "browser-game",
+    "gambling-simulation"
+  ],
+  "author": "Maximilian Scheffler",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {},
+  "browserslist": [
+    "defaults",
+    "not IE 11"
+  ]
+}

@@ -1,0 +1,173 @@
+/* Button styles */
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+#spin-button {
+    background-color: var(--error-red);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 15px 40px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 5px 0 var(--error-red-dark);
+    margin-top: var(--spacing-sm);
+}
+
+#spin-button:hover {
+    background-color: var(--error-red-dark);
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 #a33427;
+}
+
+#spin-button:active,
+#spin-button.disabled {
+    transform: translateY(5px);
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+#spin-button.free-spin {
+    background-color: var(--secondary-green);
+    color: var(--text-light);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+@keyframes errorBlink {
+    0% { color: var(--text-light); }
+    50% { color: var(--error-red); }
+    100% { color: var(--text-light); }
+}
+
+#spin-button.error {
+    animation: errorBlink 0.5s infinite;
+    background-color: var(--error-red);
+    box-shadow: 0 5px 0 var(--error-red-dark);
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.spin-cost.error {
+    animation: errorBlink 0.5s infinite;
+    font-weight: bold;
+}
+
+#auto-spin-button {
+    background-color: var(--btn-purple);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 15px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 5px 0 var(--btn-purple-dark);
+    margin-top: var(--spacing-sm);
+    position: relative;
+}
+
+#auto-spin-button:hover:not(.disabled) {
+    background-color: var(--btn-purple-dark);
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 #7d3c98;
+}
+
+#auto-spin-button:active:not(.disabled) {
+    transform: translateY(5px);
+    box-shadow: none;
+}
+
+#auto-spin-button.active {
+    background-color: var(--btn-orange);
+    box-shadow: 0 5px 0 var(--btn-orange-dark);
+    animation: auto-spin-pulse 1s infinite alternate;
+}
+
+#auto-spin-button.active:hover {
+    background-color: var(--btn-orange-dark);
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 #d35400;
+}
+
+#auto-spin-button.disabled {
+    background-color: #666;
+    color: var(--text-disabled);
+    cursor: not-allowed;
+    box-shadow: 0 5px 0 #555;
+}
+
+@keyframes auto-spin-pulse {
+    0% { box-shadow: 0 5px 0 var(--btn-orange-dark), 0 0 0 0 rgba(243, 156, 18, 0.7); }
+    100% { box-shadow: 0 5px 0 var(--btn-orange-dark), 0 0 0 10px rgba(243, 156, 18, 0); }
+}
+
+/* Bet multiplier buttons */
+.bet-multiplier-controls {
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.bet-multiplier-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.bet-multiplier-btn {
+    background-color: #555;
+    color: var(--text-light);
+    border: 2px solid #777;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 45px;
+}
+
+.bet-multiplier-btn:hover:not(:disabled) {
+    background-color: #666;
+    border-color: #888;
+    transform: translateY(-1px);
+}
+
+.bet-multiplier-btn.active {
+    background-color: var(--primary-gold);
+    color: var(--surface-dark);
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 10px rgba(248, 215, 76, 0.5);
+}
+
+.bet-multiplier-btn:disabled {
+    background-color: var(--surface-dark);
+    color: #666;
+    border-color: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.bet-multiplier-btn:active:not(:disabled) {
+    transform: translateY(0);
+}

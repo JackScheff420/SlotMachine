@@ -1,0 +1,182 @@
+/* Powerup system styles */
+
+.coin-box {
+    position: absolute;
+    left: -210px;
+    top: 0;
+    background-color: var(--surface-dark);
+    border: 8px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-base);
+    text-align: center;
+    width: 180px;
+}
+
+.coin-display {
+    background-color: var(--surface-darker);
+    border: 4px solid var(--border-gold);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.coin-icon {
+    font-size: 32px;
+}
+
+.double-money-active {
+    position: relative;
+}
+
+.double-money-active::after {
+    content: "2X";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--border-gold);
+    color: black;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: double-money-glow 1s infinite alternate;
+}
+
+@keyframes double-money-glow {
+    0% { box-shadow: 0 0 5px var(--border-gold); }
+    100% { box-shadow: 0 0 15px var(--border-gold); }
+}
+
+.powerup-panel {
+    position: absolute;
+    right: -320px;
+    top: 0;
+    background-color: var(--surface-dark);
+    border: 8px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-base);
+    text-align: center;
+    width: 300px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.powerup-shop {
+    margin-bottom: var(--spacing-lg);
+}
+
+.powerup-item {
+    background-color: var(--surface-darker);
+    border: 2px solid #555;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    transition: all var(--transition-fast);
+}
+
+.powerup-item:hover {
+    border-color: var(--primary-gold);
+    background-color: #2a2a2a;
+}
+
+.powerup-icon {
+    font-size: 32px;
+    min-width: 40px;
+}
+
+.powerup-info {
+    flex: 1;
+    text-align: left;
+}
+
+.powerup-buy-btn {
+    background-color: var(--secondary-green);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 60px;
+}
+
+.powerup-buy-btn:hover:not(:disabled) {
+    background-color: #45a049;
+    transform: translateY(-1px);
+}
+
+.powerup-buy-btn:active {
+    transform: translateY(0);
+}
+
+.powerup-buy-btn.disabled {
+    background-color: #666;
+    color: var(--text-disabled);
+    cursor: not-allowed;
+}
+
+.powerup-buy-btn.active {
+    background-color: var(--btn-orange);
+    color: var(--text-light);
+}
+
+.active-powerups {
+    border-top: 2px solid #555;
+    padding-top: var(--spacing-md);
+}
+
+.active-powerup {
+    background-color: #1a4a1a;
+    border: 2px solid var(--secondary-green);
+    border-radius: 8px;
+    padding: var(--spacing-sm);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    animation: powerup-glow 2s infinite alternate;
+}
+
+@keyframes powerup-glow {
+    0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+    100% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+}
+
+.active-powerup .powerup-icon {
+    font-size: 20px;
+}
+
+.active-powerup .powerup-name {
+    flex: 1;
+    color: var(--secondary-green);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.active-powerup .powerup-remaining {
+    background-color: var(--secondary-green);
+    color: var(--text-light);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}

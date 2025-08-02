@@ -1,0 +1,36 @@
+/* Animation and message styles */
+
+/* Win message styles */
+.win-message {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--border-gold);
+    padding: 15px 25px;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    text-align: center;
+    z-index: var(--z-message);
+    min-width: 300px;
+    transition: top var(--transition-medium) ease-out;
+    box-shadow: var(--shadow-gold);
+    font-size: 20px;
+}
+
+.win-message.show {
+    top: 20px;
+}
+
+/* Mobile responsive adjustments for win messages */
+@media screen and (max-width: 768px) {
+    .win-message {
+        width: 90%;
+        max-width: 300px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}

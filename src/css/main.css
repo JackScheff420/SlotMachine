@@ -1,0 +1,312 @@
+/* Main CSS file - imports all components */
+
+/* Base styles */
+@import url('./base/variables.css');
+@import url('./base/reset.css');
+@import url('./base/typography.css');
+
+/* Component styles */
+@import url('./components/slot-machine.css');
+@import url('./components/buttons.css');
+@import url('./components/powerups.css');
+@import url('./components/reels.css');
+
+/* Effects */
+@import url('./effects/crt-effects.css');
+@import url('./effects/animations.css');
+
+/* =========================== */
+/* RESPONSIVE DESIGN - MOBILE */
+/* =========================== */
+
+/* Mobile and Tablet Breakpoints */
+@media screen and (max-width: 768px) {
+    /* Disable horizontal overflow and make body scrollable on mobile */
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: none;
+    }
+
+    .container {
+        padding: var(--spacing-sm);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Stack layout vertically instead of side-by-side */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-lg);
+        width: 100%;
+        max-width: 400px;
+        position: static;
+    }
+
+    /* Reset absolute positioning for mobile */
+    .coin-box {
+        position: static;
+        left: auto;
+        top: auto;
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: var(--spacing-lg);
+        order: 1; /* Show coins first */
+    }
+
+    .slot-machine {
+        order: 2; /* Show slot machine second */
+        width: 100%;
+        max-width: 350px;
+        padding: var(--spacing-md);
+    }
+
+    .powerup-panel {
+        position: static;
+        right: auto;
+        top: auto;
+        width: 100%;
+        max-width: 350px;
+        max-height: none;
+        overflow-y: visible;
+        order: 3; /* Show powerups last */
+    }
+
+    /* Adjust slot machine for mobile */
+    .slot-window {
+        padding: 8px;
+    }
+
+    .reels-container {
+        gap: 3px;
+    }
+
+    .reel {
+        width: 60px; /* Smaller reels for mobile */
+        height: 180px; /* 3 symbols * 60px */
+    }
+
+    .symbol {
+        height: 60px; /* Match smaller reel height */
+        font-size: 32px; /* Smaller symbols */
+    }
+
+    /* Adjust button for mobile - make it touch-friendly */
+    #spin-button {
+        padding: 12px 30px;
+        font-size: 18px;
+        min-height: 50px; /* Ensure minimum touch target size */
+        width: 100%;
+        max-width: 120px;
+    }
+
+    #auto-spin-button {
+        padding: 12px 20px;
+        font-size: 16px;
+        min-height: 50px;
+        width: 100%;
+        max-width: 120px;
+    }
+
+    .button-group {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+
+    /* Adjust powerup items for mobile */
+    .powerup-item {
+        padding: 12px;
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .powerup-icon {
+        font-size: 28px;
+    }
+
+    .powerup-info {
+        text-align: center;
+    }
+
+    .powerup-buy-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        min-height: 44px; /* Touch-friendly button size */
+        width: 100%;
+        max-width: 120px;
+    }
+
+    /* Adjust typography for mobile */
+    h1 {
+        font-size: 28px;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .coin-box h2,
+    .powerup-panel h2 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .coin-count {
+        font-size: 24px;
+    }
+
+    .powerup-name {
+        font-size: 14px;
+    }
+
+    .powerup-cost {
+        font-size: 12px;
+    }
+
+    .powerup-desc {
+        font-size: 11px;
+    }
+
+    /* Adjust spacing */
+    .coin-display {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .spin-cost {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .bet-multiplier-controls {
+        margin-bottom: 12px;
+    }
+
+    .bet-multiplier-label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .bet-multiplier-buttons {
+        gap: 3px;
+    }
+
+    .bet-multiplier-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        min-width: 40px;
+    }
+}
+
+/* Extra small mobile devices */
+@media screen and (max-width: 480px) {
+    .container {
+        padding: var(--spacing-xs);
+    }
+
+    .game-container {
+        max-width: 100%;
+        gap: var(--spacing-md);
+    }
+
+    .slot-machine {
+        max-width: 100%;
+        padding: var(--spacing-sm);
+    }
+
+    .reel {
+        width: 50px;
+        height: 150px; /* 3 symbols * 50px */
+    }
+
+    .symbol {
+        height: 50px;
+        font-size: 28px;
+    }
+
+    .coin-box,
+    .powerup-panel {
+        max-width: 100%;
+        padding: var(--spacing-md);
+    }
+
+    h1 {
+        font-size: 24px;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .coin-count {
+        font-size: 20px;
+    }
+
+    #spin-button {
+        font-size: 16px;
+        padding: 10px 25px;
+    }
+
+    #auto-spin-button {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+
+    .powerup-item {
+        padding: var(--spacing-sm);
+    }
+
+    .bet-multiplier-buttons {
+        gap: 2px;
+    }
+
+    .bet-multiplier-btn {
+        padding: 5px 8px;
+        font-size: 11px;
+        min-width: 35px;
+    }
+
+    .powerup-icon {
+        font-size: 24px;
+    }
+}
+
+/* Landscape mobile orientation */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .game-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+        max-width: 100%;
+    }
+
+    .coin-box {
+        order: 1;
+        width: 200px;
+        margin-bottom: 0;
+    }
+
+    .slot-machine {
+        order: 2;
+        width: 300px;
+    }
+
+    .powerup-panel {
+        order: 3;
+        width: 250px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .reel {
+        width: 45px;
+        height: 135px;
+    }
+
+    .symbol {
+        height: 45px;
+        font-size: 24px;
+    }
+}

@@ -1,0 +1,72 @@
+/* Slot machine core styles */
+
+.container {
+    position: relative;
+    text-align: center;
+    z-index: var(--z-content);
+}
+
+.game-container {
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.slot-machine {
+    background-color: var(--surface-dark);
+    border: 8px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-base);
+}
+
+.slot-window {
+    background-color: var(--surface-darker);
+    border: 4px solid var(--border-gold);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.reels-container {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.reel {
+    width: 100px;
+    height: 300px;
+    position: relative;
+    overflow: hidden;
+    background-color: #000;
+    border-radius: var(--radius-sm);
+}
+
+.symbols-container {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.symbol {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 48px;
+    color: var(--text-light);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+}
+
+/* Symbol colors */
+.symbol-7 { color: var(--primary-gold); }
+.symbol-bell { color: #f39c12; }
+.symbol-cherry { color: var(--error-red); }
+.symbol-lemon { color: var(--primary-gold); }
+.symbol-orange { color: #e67e22; }
+.symbol-plum { color: var(--btn-purple); }
+.symbol-watermelon { color: #2ecc71; }
