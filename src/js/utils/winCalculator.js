@@ -14,13 +14,21 @@ export class WinCalculator {
     // Gewinnkombinationen prüfen
     checkWinningCombinations(currentReelSymbols) {
         return new Promise((resolve) => {
-            // Alle Walzensymbole erfassen (für alle sichtbaren Reihen)
+            // Get max unlocked reels from progression manager
+            const maxUnlockedReels = this.gameState.progressionManager 
+                ? this.gameState.progressionManager.getMaxUnlockedReels() 
+                : 5; // Fallback to all reels if progression manager not available
+
+            // Only consider symbols from unlocked reels
+            const unlockedReelSymbols = currentReelSymbols.slice(0, maxUnlockedReels);
+
+            // Alle Walzensymbole erfassen (nur für freigeschaltete Walzen und alle sichtbaren Reihen)
             const allRowsSymbols = [];
 
             // Für jede sichtbare Reihe
             for (let row = 0; row < this.visibleRows; row++) {
-                // Symbole dieser Reihe aus allen Walzen sammeln
-                const rowSymbols = currentReelSymbols.map(reelSymbols => reelSymbols[row]);
+                // Symbole dieser Reihe nur aus freigeschalteten Walzen sammeln
+                const rowSymbols = unlockedReelSymbols.map(reelSymbols => reelSymbols[row]);
                 allRowsSymbols.push(rowSymbols);
             }
 
@@ -31,11 +39,11 @@ export class WinCalculator {
             // 1. Horizontale Muster prüfen
             totalWinAmount += this.checkHorizontalPatterns(allRowsSymbols, winningSequences);
 
-            // 2. Vertikale Muster prüfen
-            totalWinAmount += this.checkVerticalPatterns(allRowsSymbols, winningSequences);
+            // 2. Vertikale Muster prüfen (nur für freigeschaltete Walzen)
+            totalWinAmount += this.checkVerticalPatterns(allRowsSymbols, winningSequences, maxUnlockedReels);
 
-            // 3. Diagonale Muster prüfen
-            totalWinAmount += this.checkDiagonalPatterns(allRowsSymbols, winningSequences);
+            // 3. Diagonale Muster prüfen (nur für freigeschaltete Walzen)
+            totalWinAmount += this.checkDiagonalPatterns(allRowsSymbols, winningSequences, maxUnlockedReels);
 
             // Wenn es Gewinnkombinationen gibt
             if (winningSequences.length > 0) {
@@ -115,12 +123,12 @@ export class WinCalculator {
         return totalWinAmount;
     }
 
-    checkVerticalPatterns(allRowsSymbols, winningSequences) {
+    checkVerticalPatterns(allRowsSymbols, winningSequences, maxUnlockedReels) {
         let totalWinAmount = 0;
         const reels = document.querySelectorAll('.reel');
 
-        // Vertikale Muster prüfen (drei in einer Spalte)
-        for (let colIndex = 0; colIndex < reels.length; colIndex++) {
+        // Vertikale Muster prüfen (drei in einer Spalte) - nur für freigeschaltete Walzen
+        for (let colIndex = 0; colIndex < Math.min(reels.length, maxUnlockedReels); colIndex++) {
             const columnSymbols = [];
             for (let row = 0; row < this.visibleRows; row++) {
                 columnSymbols.push(allRowsSymbols[row][colIndex]);
@@ -147,12 +155,12 @@ export class WinCalculator {
         return totalWinAmount;
     }
 
-    checkDiagonalPatterns(allRowsSymbols, winningSequences) {
+    checkDiagonalPatterns(allRowsSymbols, winningSequences, maxUnlockedReels) {
         let totalWinAmount = 0;
         const reels = document.querySelectorAll('.reel');
 
-        // Diagonale Muster prüfen (X Formation)
-        if (this.visibleRows >= 3 && reels.length >= 3) {
+        // Diagonale Muster prüfen (X Formation) - nur wenn mindestens 3 Walzen freigeschaltet sind
+        if (this.visibleRows >= 3 && maxUnlockedReels >= 3) {
             // Haupt-Diagonale (links-oben nach rechts-unten)
             const mainDiagonal = [
                 allRowsSymbols[0][0], // Oben links

@@ -411,6 +411,11 @@ export class GameState {
         // Gewinnkombinationen prüfen
         await this.winCalculator.checkWinningCombinations(this.reels.getCurrentSymbols());
         
+        // Update progression display to maintain locked reel visual state
+        if (this.progressionManager) {
+            this.progressionManager.updateReelDisplay();
+        }
+        
         // Only reactivate buttons after all animations and win sequences are complete
         this.updateSpinButtonState();
         
