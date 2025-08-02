@@ -186,14 +186,20 @@ export class Reels {
 
     // Alle Walzen drehen
     async spinAllReels() {
-        // Nacheinander alle Walzen drehen
-        const promises = this.reels.map((reel, index) => {
+        // Get max unlocked reels from progression manager
+        const maxUnlockedReels = this.gameState.progressionManager 
+            ? this.gameState.progressionManager.getMaxUnlockedReels() 
+            : 5; // Fallback to all reels if progression manager not available
+
+        // Only spin unlocked reels
+        const promises = [];
+        for (let index = 0; index < maxUnlockedReels && index < this.reels.length; index++) {
             const duration = 2000 + index * 400; // Jede nachfolgende Walze dreht länger
             const delay = index * 150; // Jede nachfolgende Walze startet später
-            return this.spinReel(index, duration, delay);
-        });
+            promises.push(this.spinReel(index, duration, delay));
+        }
 
-        // Warten bis alle Walzen angehalten haben
+        // Warten bis alle unlocked Walzen angehalten haben
         await Promise.all(promises);
 
         // Clear locked reels after spin

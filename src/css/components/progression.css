@@ -1,0 +1,378 @@
+/* Progression and unlock system styles */
+
+/* Locked reels */
+.reel.locked {
+    opacity: 0.3;
+    filter: grayscale(1);
+    position: relative;
+    pointer-events: none;
+}
+
+.reel.locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+/* Reel unlock button */
+.reel-unlock-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 12px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    min-width: 60px;
+    pointer-events: auto; /* Override parent's pointer-events: none */
+}
+
+.reel-unlock-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.reel-unlock-btn .unlock-icon {
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.reel-unlock-btn .unlock-cost {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Locked bet multiplier buttons */
+.bet-multiplier-btn.locked {
+    opacity: 0.6;
+    background: linear-gradient(135deg, #666, #555);
+    color: #ccc;
+    position: relative;
+    cursor: pointer;
+}
+
+.bet-multiplier-btn.locked:hover {
+    background: linear-gradient(135deg, #777, #666);
+    transform: translateY(-1px);
+}
+
+.bet-multiplier-btn.locked .bet-text {
+    display: block;
+    font-size: 12px;
+}
+
+.bet-multiplier-btn.locked .unlock-cost {
+    display: block;
+    font-size: 9px;
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+/* Locked auto-spin button */
+#auto-spin-button.locked {
+    opacity: 0.7;
+    background: linear-gradient(135deg, #666, #555);
+    color: #ccc;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+}
+
+#auto-spin-button.locked:hover {
+    background: linear-gradient(135deg, #777, #666);
+    transform: translateY(-1px);
+}
+
+#auto-spin-button.locked .feature-text {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#auto-spin-button.locked .unlock-cost {
+    font-size: 10px;
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+/* Locked features overlay */
+.locked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    border-radius: inherit;
+    z-index: 1;
+}
+
+/* Locked powerup items */
+.powerup-item.locked {
+    opacity: 0.6;
+    filter: grayscale(1);
+    position: relative;
+}
+
+.powerup-item.locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: inherit;
+    z-index: 1;
+}
+
+.powerup-item.locked .powerup-buy-btn.unlock-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    position: relative;
+    z-index: 2;
+    font-size: 10px;
+    padding: 4px 8px;
+}
+
+.powerup-item.locked .powerup-buy-btn.unlock-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-1px);
+}
+
+/* Unlock notification */
+.unlock-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    animation: slideInUnlock 0.5s ease-out, fadeOutUnlock 0.5s ease-in 2.5s forwards;
+}
+
+@keyframes slideInUnlock {
+    from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOutUnlock {
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+}
+
+/* Progress indicator */
+.progression-panel {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    z-index: 100;
+    max-width: 200px;
+}
+
+.progression-panel h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #ffd700;
+}
+
+.progression-panel .unlock-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 4px 0;
+    padding: 2px 0;
+}
+
+.progression-panel .unlock-item.unlocked {
+    color: #4CAF50;
+}
+
+.progression-panel .unlock-item.available {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.progression-panel .unlock-cost {
+    font-size: 10px;
+    color: #ccc;
+}
+
+/* Insufficient funds popup */
+.insufficient-funds-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeInPopup 0.3s ease-out;
+}
+
+.insufficient-funds-popup .popup-content {
+    background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+    border: 2px solid #ff6b6b;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    color: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.insufficient-funds-popup .popup-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.insufficient-funds-popup .popup-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff6b6b;
+    margin-bottom: 16px;
+}
+
+.insufficient-funds-popup .popup-message {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    color: #ccc;
+}
+
+.insufficient-funds-popup .popup-message strong {
+    color: #ffd700;
+}
+
+.insufficient-funds-popup .popup-close-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.insufficient-funds-popup .popup-close-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+@keyframes fadeInPopup {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+    .reel-unlock-btn {
+        padding: 6px 8px;
+        font-size: 10px;
+        min-width: 50px;
+    }
+    
+    .reel-unlock-btn .unlock-icon {
+        font-size: 14px;
+    }
+    
+    .reel-unlock-btn .unlock-cost {
+        font-size: 8px;
+    }
+    
+    .progression-panel {
+        top: 5px;
+        right: 5px;
+        max-width: 150px;
+        font-size: 10px;
+    }
+    
+    .bet-multiplier-btn.locked .bet-text,
+    #auto-spin-button.locked .feature-text {
+        font-size: 10px;
+    }
+    
+    .bet-multiplier-btn.locked .unlock-cost,
+    #auto-spin-button.locked .unlock-cost {
+        font-size: 8px;
+    }
+    
+    .insufficient-funds-popup .popup-content {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .insufficient-funds-popup .popup-icon {
+        font-size: 36px;
+        margin-bottom: 12px;
+    }
+    
+    .insufficient-funds-popup .popup-title {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+    
+    .insufficient-funds-popup .popup-message {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+    
+    .insufficient-funds-popup .popup-close-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}

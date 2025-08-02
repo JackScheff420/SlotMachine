@@ -6,6 +6,7 @@
 const COINS_KEY = 'slotMachineCoins';
 const LAST_FREE_SPIN_KEY = 'slotMachineLastFreeSpin';
 const POWERUPS_KEY = 'slotMachinePowerups';
+const UNLOCKS_KEY = 'slotMachineUnlocks';
 
 export class StorageManager {
     // Lädt Coins aus dem localStorage oder setzt auf Standardwert
@@ -59,5 +60,20 @@ export class StorageManager {
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
         return tomorrow.getTime();
+    }
+
+    // Lädt Unlock-Status aus dem localStorage
+    static loadUnlocks() {
+        const savedUnlocks = localStorage.getItem(UNLOCKS_KEY);
+        return savedUnlocks ? JSON.parse(savedUnlocks) : {
+            reels: { 1: true }, // Start with 1 reel unlocked
+            betMultipliers: { 1: true }, // Start with 1x multiplier unlocked
+            features: {} // No features unlocked initially
+        };
+    }
+
+    // Speichert Unlock-Status im localStorage
+    static saveUnlocks(unlocks) {
+        localStorage.setItem(UNLOCKS_KEY, JSON.stringify(unlocks));
     }
 }

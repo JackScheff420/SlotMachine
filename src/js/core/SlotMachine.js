@@ -6,6 +6,7 @@ import { GameState } from './GameState.js';
 import { BetManager } from '../components/BetManager.js';
 import { PowerupManager } from '../components/Powerups.js';
 import { Reels } from '../components/Reels.js';
+import { ProgressionManager } from '../components/ProgressionManager.js';
 import { WinCalculator } from '../utils/winCalculator.js';
 import { addRequiredStyles } from '../utils/animations.js';
 
@@ -15,6 +16,7 @@ export class SlotMachine {
         this.betManager = new BetManager(this.gameState);
         this.powerupManager = new PowerupManager(this.gameState);
         this.reels = new Reels(this.gameState);
+        this.progressionManager = new ProgressionManager(this.gameState);
         this.winCalculator = new WinCalculator(this.gameState);
 
         // Set component references in game state
@@ -22,7 +24,8 @@ export class SlotMachine {
             this.betManager,
             this.powerupManager,
             this.reels,
-            this.winCalculator
+            this.winCalculator,
+            this.progressionManager
         );
 
         this.initialize();
@@ -44,6 +47,9 @@ export class SlotMachine {
         this.gameState.updateCoinDisplay(false); // false = keine Error-Anzeige beim Start
         this.gameState.updateAutoSpinButtonState();
         this.betManager.updateBetDisplay(); // Initialize bet display
+
+        // Initialize progression system UI (after other UI updates)
+        this.progressionManager.updateAllUI();
 
         // Make global functions available
         this.setupGlobalFunctions();

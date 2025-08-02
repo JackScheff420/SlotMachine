@@ -85,6 +85,12 @@ export class GameState {
     }
 
     startAutoSpin() {
+        // Check if auto-spin is unlocked
+        if (this.progressionManager && !this.progressionManager.isFeatureUnlocked('autoSpin')) {
+            this.showMessage("Auto-Spin ist noch nicht freigeschaltet!");
+            return;
+        }
+
         // Check if we can start auto spin
         const currentSpinCost = this.betManager.getCurrentSpinCost();
         if (this.coins < currentSpinCost && !this.hasFreeSpin) {
@@ -139,6 +145,12 @@ export class GameState {
     }
 
     updateAutoSpinButtonState() {
+        // Check if auto-spin is locked by progression system
+        if (this.progressionManager && !this.progressionManager.isFeatureUnlocked('autoSpin')) {
+            // Let progression manager handle the locked state
+            return;
+        }
+
         if (this.isAutoSpinActive) {
             this.autoSpinButton.classList.add('active');
             this.autoSpinButton.classList.remove('disabled');
@@ -399,6 +411,11 @@ export class GameState {
         // Gewinnkombinationen prüfen
         await this.winCalculator.checkWinningCombinations(this.reels.getCurrentSymbols());
         
+        // Update progression display to maintain locked reel visual state
+        if (this.progressionManager) {
+            this.progressionManager.updateReelDisplay();
+        }
+        
         // Only reactivate buttons after all animations and win sequences are complete
         this.updateSpinButtonState();
         
@@ -406,10 +423,11 @@ export class GameState {
     }
 
     // Set references to other components
-    setComponents(betManager, powerupManager, reels, winCalculator) {
+    setComponents(betManager, powerupManager, reels, winCalculator, progressionManager) {
         this.betManager = betManager;
         this.powerupManager = powerupManager;
         this.reels = reels;
         this.winCalculator = winCalculator;
+        this.progressionManager = progressionManager;
     }
 }
