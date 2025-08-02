@@ -2,3 +2,23 @@
 *test*.html
 enable_button.html
 force_click_test.html
+
+# Build artifacts
+dist/
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup

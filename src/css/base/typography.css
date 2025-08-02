@@ -1,0 +1,75 @@
+/* Typography styles */
+
+h1 {
+    margin-bottom: 30px;
+    color: #f8d74c;
+    text-shadow: 0 0 10px rgba(248, 215, 76, 0.7);
+}
+
+.coin-box h2,
+.powerup-panel h2 {
+    color: #f8d74c;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.active-powerups h3 {
+    color: #f8d74c;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.powerup-name {
+    font-weight: bold;
+    color: #f8d74c;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.powerup-cost {
+    color: #4CAF50;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.powerup-desc {
+    color: #ccc;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.bet-multiplier-label {
+    color: #f8d74c;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.spin-cost {
+    margin-bottom: 10px;
+    color: #f8d74c;
+    font-size: 16px;
+}
+
+.coin-count {
+    font-size: 32px;
+    font-weight: bold;
+    color: #f8d74c;
+    text-shadow: 0 0 5px rgba(248, 215, 76, 0.7);
+}
+
+.free-spin-timer {
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+    margin-top: 5px;
+    height: 18px;
+    overflow: hidden;
+    transition: opacity 0.3s;
+}
+
+.free-spin-timer.hidden {
+    opacity: 0;
+    height: 0;
+    margin-top: 0;
+}

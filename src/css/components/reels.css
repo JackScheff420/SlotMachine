@@ -1,0 +1,64 @@
+/* Reel-specific styles for interactions and states */
+
+/* Reel selection for Symbol Lock */
+.reel.selectable {
+    cursor: pointer;
+    border: 2px solid var(--primary-gold);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.reel.selectable:hover {
+    border-color: var(--btn-orange);
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+}
+
+.reel.locked {
+    border: 3px solid var(--secondary-green);
+    box-shadow: var(--shadow-green);
+    animation: lock-pulse 1s infinite alternate;
+}
+
+@keyframes lock-pulse {
+    0% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.7); }
+    100% { box-shadow: 0 0 25px rgba(76, 175, 80, 1); }
+}
+
+/* Win highlighting */
+.symbol-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 4px solid var(--border-gold);
+    border-radius: 8px;
+    box-shadow: 0 0 10px var(--border-gold);
+    animation: pulse 0.5s infinite alternate;
+    pointer-events: none;
+    z-index: var(--z-highlight);
+}
+
+.symbol-highlight.x-formation {
+    border: 4px solid #ff4444;
+    box-shadow: 0 0 15px #ff4444, 0 0 30px #ff4444;
+    animation: pulse-x 0.3s infinite alternate;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes pulse-x {
+    0% { 
+        opacity: 0.6; 
+        transform: scale(0.9); 
+        box-shadow: 0 0 15px #ff4444, 0 0 30px #ff4444;
+    }
+    100% { 
+        opacity: 1; 
+        transform: scale(1.1); 
+        box-shadow: 0 0 25px #ff4444, 0 0 50px #ff4444;
+    }
+}

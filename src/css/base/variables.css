@@ -1,0 +1,54 @@
+/* CSS Variables for consistent theming */
+
+:root {
+    /* Colors */
+    --primary-gold: #f8d74c;
+    --secondary-green: #4CAF50;
+    --background-dark: #1a1a1a;
+    --surface-dark: #333;
+    --surface-darker: #222;
+    --border-color: #444;
+    --border-gold: gold;
+    --text-light: white;
+    --text-muted: #ccc;
+    --text-disabled: #999;
+    --error-red: #e74c3c;
+    --error-red-dark: #c0392b;
+    
+    /* Button Colors */
+    --btn-purple: #9b59b6;
+    --btn-purple-dark: #8e44ad;
+    --btn-orange: #f39c12;
+    --btn-orange-dark: #e67e22;
+    
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+    
+    /* Border Radius */
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-lg: 15px;
+    --radius-pill: 50px;
+    
+    /* Shadows */
+    --shadow-base: 0 0 20px rgba(0, 0, 0, 0.5);
+    --shadow-gold: 0 0 20px rgba(255, 215, 0, 0.7);
+    --shadow-green: 0 0 15px rgba(76, 175, 80, 0.7);
+    
+    /* Transitions */
+    --transition-fast: 0.3s;
+    --transition-medium: 0.5s;
+    
+    /* Z-indexes */
+    --z-overlay: 999;
+    --z-effects: 1000;
+    --z-static: 1002;
+    --z-rolling: 1003;
+    --z-content: 10;
+    --z-highlight: 10;
+    --z-message: 100;
+}
