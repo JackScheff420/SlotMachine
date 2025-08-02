@@ -16,6 +16,12 @@ export class BetManager {
 
     // Bet multiplier functions
     setBetMultiplier(multiplier) {
+        // Check if this multiplier is unlocked
+        if (this.gameState.progressionManager && !this.gameState.progressionManager.isBetMultiplierUnlocked(multiplier)) {
+            this.gameState.showMessage(`${multiplier}x Einsatz ist noch nicht freigeschaltet!`);
+            return;
+        }
+
         this.betMultiplier = multiplier;
         this.gameState.updateSpinButtonState();
         this.gameState.updateAutoSpinButtonState();
@@ -33,9 +39,15 @@ export class BetManager {
             }
         }
         
-        // Update bet multiplier buttons
+        // Update bet multiplier buttons (only if not controlled by progression manager)
         document.querySelectorAll('.bet-multiplier-btn').forEach(btn => {
             const multiplier = parseInt(btn.dataset.multiplier);
+            
+            // Skip if this button is locked by progression system
+            if (btn.classList.contains('locked')) {
+                return;
+            }
+            
             btn.classList.toggle('active', multiplier === this.betMultiplier);
             btn.disabled = this.gameState.coins < (this.baseCost * multiplier) && !this.gameState.hasFreeSpin;
         });
