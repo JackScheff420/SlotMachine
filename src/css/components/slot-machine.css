@@ -9,7 +9,12 @@
 .game-container {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+    gap: var(--spacing-xl);
     position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .slot-machine {

@@ -1,9 +1,6 @@
 /* Powerup system styles */
 
 .coin-box {
-    position: absolute;
-    left: -250px;
-    top: 0;
     background-color: var(--surface-dark);
     border: 8px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -13,6 +10,7 @@
     width: 220px;
     height: fit-content;
     max-height: 200px;
+    flex-shrink: 0;
 }
 
 .coin-display {
@@ -59,9 +57,6 @@
 }
 
 .powerup-panel {
-    position: absolute;
-    right: -250px;
-    top: 0;
     background-color: var(--surface-dark);
     border: 8px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -72,6 +67,7 @@
     height: fit-content;
     max-height: 600px;
     overflow-y: auto;
+    flex-shrink: 0;
 }
 
 .powerup-shop {
