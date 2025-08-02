@@ -104,10 +104,10 @@ export const gameConfig = {
         // Reel unlock costs
         reels: {
             1: { cost: 0, unlocked: true },      // First reel is always unlocked
-            2: { cost: 200, unlocked: false },   // 1x3 → 3x3
-            3: { cost: 500, unlocked: false },   // 3x3 → 5x3  
-            4: { cost: 1000, unlocked: false },  // 5x3 → 7x3 
-            5: { cost: 2000, unlocked: false }   // 7x3 → 9x3
+            2: { cost: 10, unlocked: false },   // 1x3 → 3x3
+            3: { cost: 50, unlocked: false },   // 3x3 → 5x3  
+            4: { cost: 100, unlocked: false },  // 5x3 → 7x3 
+            5: { cost: 200, unlocked: false }   // 7x3 → 9x3
         },
 
         // Feature unlock costs
