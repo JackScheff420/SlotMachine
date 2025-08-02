@@ -115,7 +115,7 @@ export class ProgressionManager {
         const cost = this.getUnlockCost(type, item);
         
         if (this.gameState.coins < cost) {
-            this.gameState.showMessage(`Nicht genug Coins! Benötigt: ${cost}`);
+            this.showInsufficientFundsPopup(cost, this.getUnlockName(type, item));
             return false;
         }
 
@@ -315,6 +315,41 @@ export class ProgressionManager {
         }
     }
 
+    // Show prominent popup for insufficient funds
+    showInsufficientFundsPopup(cost, itemName) {
+        // Remove any existing popup
+        const existingPopup = document.getElementById('insufficient-funds-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        // Create popup element
+        const popup = document.createElement('div');
+        popup.id = 'insufficient-funds-popup';
+        popup.className = 'insufficient-funds-popup';
+        popup.innerHTML = `
+            <div class="popup-content">
+                <div class="popup-icon">💰</div>
+                <div class="popup-title">Nicht genug Coins!</div>
+                <div class="popup-message">
+                    Du benötigst <strong>${cost} Coins</strong> um <strong>${itemName}</strong> freizuschalten.
+                    <br>Du hast nur <strong>${this.gameState.coins} Coins</strong>.
+                </div>
+                <button class="popup-close-btn" onclick="this.parentElement.parentElement.remove()">OK</button>
+            </div>
+        `;
+
+        // Add to page
+        document.body.appendChild(popup);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (popup.parentElement) {
+                popup.remove();
+            }
+        }, 5000);
+    }
+
     // Update powerup display (show/hide locked powerups)
     updatePowerupDisplay() {
         const powerupItems = document.querySelectorAll('.powerup-item');
@@ -330,7 +365,7 @@ export class ProgressionManager {
                 const cost = this.getUnlockCost('powerups', powerupId);
                 const powerupName = this.getUnlockName('powerups', powerupId);
                 
-                // Replace buy button with unlock button
+                // Replace buy button with unlock button - always enabled for user feedback
                 buyBtn.innerHTML = `UNLOCK ${cost}c`;
                 buyBtn.classList.add('unlock-btn');
                 buyBtn.onclick = (e) => {
@@ -338,7 +373,7 @@ export class ProgressionManager {
                     e.stopPropagation();
                     this.purchaseUnlock('powerups', powerupId);
                 };
-                buyBtn.disabled = this.gameState.coins < cost;
+                buyBtn.disabled = false; // Always enabled to allow click for popup
             } else {
                 // Restore original purchase functionality
                 buyBtn.innerHTML = 'BUY';
