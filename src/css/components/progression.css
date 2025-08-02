@@ -130,6 +130,39 @@
     z-index: 1;
 }
 
+/* Locked powerup items */
+.powerup-item.locked {
+    opacity: 0.6;
+    filter: grayscale(1);
+    position: relative;
+}
+
+.powerup-item.locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: inherit;
+    z-index: 1;
+}
+
+.powerup-item.locked .powerup-buy-btn.unlock-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    position: relative;
+    z-index: 2;
+    font-size: 10px;
+    padding: 4px 8px;
+}
+
+.powerup-item.locked .powerup-buy-btn.unlock-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-1px);
+}
+
 /* Unlock notification */
 .unlock-notification {
     position: fixed;

@@ -26,9 +26,12 @@ export class ProgressionManager {
                 25: { cost: 500, unlocked: false }
             },
             features: {
-                autoSpin: { cost: 100, unlocked: false },
-                powerupSlots: { cost: 300, unlocked: false },
-                speedBoost: { cost: 400, unlocked: false }
+                autoSpin: { cost: 100, unlocked: false }
+            },
+            powerups: {
+                double_money: { cost: 25, unlocked: false },
+                lucky_sevens: { cost: 50, unlocked: false },
+                symbol_lock: { cost: 75, unlocked: false }
             }
         };
 
@@ -61,6 +64,14 @@ export class ProgressionManager {
                 }
             });
         }
+
+        if (this.unlocks.powerups) {
+            Object.keys(this.unlocks.powerups).forEach(powerup => {
+                if (this.unlockConfig.powerups[powerup]) {
+                    this.unlockConfig.powerups[powerup].unlocked = this.unlocks.powerups[powerup];
+                }
+            });
+        }
     }
 
     // Check if a specific reel count is unlocked
@@ -76,6 +87,11 @@ export class ProgressionManager {
     // Check if a feature is unlocked
     isFeatureUnlocked(feature) {
         return this.unlockConfig.features[feature]?.unlocked || false;
+    }
+
+    // Check if a powerup is unlocked for purchase
+    isPowerupUnlocked(powerupId) {
+        return this.unlockConfig.powerups[powerupId]?.unlocked || false;
     }
 
     // Get unlock cost for a feature
@@ -135,8 +151,13 @@ export class ProgressionManager {
             case 'features':
                 switch (item) {
                     case 'autoSpin': return 'Auto-Spin';
-                    case 'powerupSlots': return 'Powerup-Slots';
-                    case 'speedBoost': return 'Speed Boost';
+                    default: return item;
+                }
+            case 'powerups':
+                switch (item) {
+                    case 'double_money': return 'Double Money';
+                    case 'lucky_sevens': return 'Lucky 7s';
+                    case 'symbol_lock': return 'Symbol Lock';
                     default: return item;
                 }
             default:
@@ -149,7 +170,8 @@ export class ProgressionManager {
         const unlocksToSave = {
             reels: {},
             betMultipliers: {},
-            features: {}
+            features: {},
+            powerups: {}
         };
 
         // Only save unlocked items
@@ -171,6 +193,12 @@ export class ProgressionManager {
             }
         });
 
+        Object.keys(this.unlockConfig.powerups).forEach(powerup => {
+            if (this.unlockConfig.powerups[powerup].unlocked) {
+                unlocksToSave.powerups[powerup] = true;
+            }
+        });
+
         StorageManager.saveUnlocks(unlocksToSave);
     }
 
@@ -179,6 +207,7 @@ export class ProgressionManager {
         this.updateReelDisplay();
         this.updateBetMultiplierDisplay();
         this.updateFeatureDisplay();
+        this.updatePowerupDisplay();
         this.gameState.updateCoinDisplay();
     }
 
@@ -284,5 +313,39 @@ export class ProgressionManager {
             // Remove our onclick handler to let GameState handle it
             autoSpinBtn.onclick = null;
         }
+    }
+
+    // Update powerup display (show/hide locked powerups)
+    updatePowerupDisplay() {
+        const powerupItems = document.querySelectorAll('.powerup-item');
+        
+        powerupItems.forEach(item => {
+            const powerupId = item.dataset.powerup;
+            const isUnlocked = this.isPowerupUnlocked(powerupId);
+            const buyBtn = item.querySelector('.powerup-buy-btn');
+            
+            item.classList.toggle('locked', !isUnlocked);
+            
+            if (!isUnlocked) {
+                const cost = this.getUnlockCost('powerups', powerupId);
+                const powerupName = this.getUnlockName('powerups', powerupId);
+                
+                // Replace buy button with unlock button
+                buyBtn.innerHTML = `UNLOCK ${cost}c`;
+                buyBtn.classList.add('unlock-btn');
+                buyBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.purchaseUnlock('powerups', powerupId);
+                };
+                buyBtn.disabled = this.gameState.coins < cost;
+            } else {
+                // Restore original purchase functionality
+                buyBtn.innerHTML = 'BUY';
+                buyBtn.classList.remove('unlock-btn');
+                buyBtn.onclick = () => this.gameState.powerupManager.purchasePowerup(powerupId);
+                // Let the powerup manager handle enabled/disabled state
+            }
+        });
     }
 }
