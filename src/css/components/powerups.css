@@ -7,7 +7,7 @@
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-base);
     text-align: center;
-    width: 220px;
+    width: 180px;
     height: fit-content;
     max-height: 200px;
     flex-shrink: 0;
@@ -63,7 +63,7 @@
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-base);
     text-align: center;
-    width: 220px;
+    width: 300px;
     height: fit-content;
     max-height: 600px;
     overflow-y: auto;
