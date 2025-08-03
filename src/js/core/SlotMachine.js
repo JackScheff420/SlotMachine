@@ -7,6 +7,7 @@ import { BetManager } from '../components/BetManager.js';
 import { PowerupManager } from '../components/Powerups.js';
 import { Reels } from '../components/Reels.js';
 import { ProgressionManager } from '../components/ProgressionManager.js';
+import { SymbolLegend } from '../components/SymbolLegend.js';
 import { WinCalculator } from '../utils/winCalculator.js';
 import { addRequiredStyles } from '../utils/animations.js';
 
@@ -17,6 +18,7 @@ export class SlotMachine {
         this.powerupManager = new PowerupManager(this.gameState);
         this.reels = new Reels(this.gameState);
         this.progressionManager = new ProgressionManager(this.gameState);
+        this.symbolLegend = new SymbolLegend(this.gameState);
         this.winCalculator = new WinCalculator(this.gameState);
 
         // Set component references in game state
@@ -38,6 +40,7 @@ export class SlotMachine {
         // Initialize components
         this.betManager.initializeBetButtons();
         this.powerupManager.updatePowerupDisplay();
+        this.symbolLegend.initialize();
 
         // Set up event listeners
         this.setupEventListeners();
