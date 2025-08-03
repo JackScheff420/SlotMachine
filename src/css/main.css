@@ -11,6 +11,7 @@
 @import url('./components/powerups.css');
 @import url('./components/reels.css');
 @import url('./components/progression.css');
+@import url('./components/symbol-legend.css');
 
 /* Effects */
 @import url('./effects/crt-effects.css');
